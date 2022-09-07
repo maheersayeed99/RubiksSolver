@@ -2,11 +2,9 @@ from part import *
 
 class face:
 
-    def __init__(self, index, cube) -> None:
+    def __init__(self, index) -> None:
         
-        self.cube = cube
         self.index = index
-        self.currFace = cube[index]
         self.neighbors = []
         self.Up = None
         self.Down = None
@@ -50,22 +48,24 @@ class face:
     #   4 5 6   4 5 6   8 5 2
     #   7 8 9   1 2 3   9 6 3
 
-    def rotateFace(self, clockwise = True):
-        if clockwise:
-            self.currFace.reverse()
-            self.transpose()
+    def rotateFace(self, cube, clockwise = True):
+        currFace = cube[self.index]
+        if clockwise == True:
+            currFace.reverse()
+            self.transpose(cube)
         else:
-            self.transpose()
-            self.currFace.reverse()
+            self.transpose(cube)
+            currFace.reverse()
 
-    def transpose(self):
-        rows = len(self.currFace)
-        cols = len(self.currFace[0])
+    def transpose(self, cube):
+        currFace = cube[self.index]
+        rows = len(currFace)
+        cols = len(currFace[0])
 
         for row in range(rows):
             for col in range(row, cols):
-                self.currFace[row][col],self.currFace[col][row] = \
-                self.currFace[col][row], self.currFace[row][col]
+                currFace[row][col],currFace[col][row] = \
+                currFace[col][row], currFace[row][col]
 '''
     def rotateSides(self):
         temp1,temp2,temp3 = cube[][][], cube[][][], cube[][][]
