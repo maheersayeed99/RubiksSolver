@@ -40,7 +40,7 @@ class cube:
     def populateCube(self):
 
         for currFace in range(6):
-            self.cubeArr.append([[currFace*i]*3 for i in range(3)])
+            self.cubeArr.append([[currFace]*3 for i in range(3)])
 
         
     def printCube(self):
@@ -152,6 +152,25 @@ while run:
         newCube.turnCubeZ()
     elif val == "RZ":
         newCube.turnCubeZ(False)
+
+    elif val == "T":
+        newCube.faceArr[0].rotateFace(newCube.cubeArr)
+        newCube.faceArr[0].rotateSides(newCube.cubeArr)
+    elif val == "L":
+        newCube.faceArr[1].rotateFace(newCube.cubeArr)
+        newCube.faceArr[1].rotateSides(newCube.cubeArr)
+    elif val == "F":
+        newCube.faceArr[2].rotateFace(newCube.cubeArr)
+        newCube.faceArr[2].rotateSides(newCube.cubeArr)
+    elif val == "R":
+        newCube.faceArr[3].rotateFace(newCube.cubeArr)
+        newCube.faceArr[3].rotateSides(newCube.cubeArr)
+    elif val == "B":
+        newCube.faceArr[4].rotateFace(newCube.cubeArr)
+        newCube.faceArr[4].rotateSides(newCube.cubeArr)
+    elif val == "D":
+        newCube.faceArr[5].rotateFace(newCube.cubeArr)
+        newCube.faceArr[5].rotateSides(newCube.cubeArr)
     else:
         print("invalid")
     newCube.printCube()
