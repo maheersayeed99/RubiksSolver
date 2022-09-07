@@ -1,5 +1,3 @@
-from part import *
-
 class face:
 
     def __init__(self, index) -> None:
@@ -12,19 +10,33 @@ class face:
     
     def populateNeighbors(self):
         match self.index:
+            
             case 0:
-                self.neighbors = [(4,"u"),(3,"u"),(2,"u"),(1,"u")]
+                self.neighbors = [(4,0),(3,0),(2,0),(1,0)]
             case 1:
-                self.neighbors = [(0,"l"),(2,"l"),(5,"l"),(4,"r")]
+                self.neighbors = [(0,3),(2,3),(5,3),(4,1)]
             case 2:
-                self.neighbors = [(0,"d"),(3,"l"),(5,"u"),(1,"r")]
+                self.neighbors = [(0,2),(3,3),(5,0),(1,1)]
             case 3:
-                self.neighbors = [(0,"r"),(4,"l"),(5,"r"),(2,"r")]
+                self.neighbors = [(0,1),(4,3),(5,1),(2,1)]
             case 4:
-                self.neighbors = [(0,"u"),(1,"l"),(5,"d"),(3,"r")]
+                self.neighbors = [(0,0),(1,3),(5,2),(3,1)]
             case 5:
-                self.neighbors = [(1,"d"),(2,"d"),(3,"d"),(4,"d")]
-        
+                self.neighbors = [(1,2),(2,2),(3,2),(4,2)]
+
+            #case 0:
+            #    self.neighbors = [(4,"u"),(3,"u"),(2,"u"),(1,"u")]
+            #case 1:
+            #    self.neighbors = [(0,"l"),(2,"l"),(5,"l"),(4,"r")]
+            #case 2:
+            #    self.neighbors = [(0,"d"),(3,"l"),(5,"u"),(1,"r")]
+            #case 3:
+            #    self.neighbors = [(0,"r"),(4,"l"),(5,"r"),(2,"r")]
+            #case 4:
+            #    self.neighbors = [(0,"u"),(1,"l"),(5,"d"),(3,"r")]
+            #case 5:
+            #    self.neighbors = [(1,"d"),(2,"d"),(3,"d"),(4,"d")]
+            
         self.reversedNeighbors = self.neighbors[::-1]
 
 
@@ -73,7 +85,7 @@ class face:
             idx = idx % len(path)
             faceVal = path[idx][0]
             
-            if path[idx][1] == "l":
+            if path[idx][1] == 3:
 
                 currArray[0] = cube[faceVal][2][0]
                 currArray[1] = cube[faceVal][1][0]
@@ -83,7 +95,7 @@ class face:
                 cube[faceVal][1][0] = prevArray[1]
                 cube[faceVal][0][0] = prevArray[2]
 
-            elif path[idx][1] == "r":
+            elif path[idx][1] == 1:
                 currArray[0] = cube[faceVal][0][2]
                 currArray[1] = cube[faceVal][1][2]
                 currArray[2] = cube[faceVal][2][2]
@@ -92,7 +104,7 @@ class face:
                 cube[faceVal][1][2] = prevArray[1]
                 cube[faceVal][2][2] = prevArray[2]
 
-            elif path[idx][1] == "u":
+            elif path[idx][1] == 0:
                 currArray[0] = cube[faceVal][0][0]
                 currArray[1] = cube[faceVal][0][1]
                 currArray[2] = cube[faceVal][0][2]
@@ -101,7 +113,7 @@ class face:
                 cube[faceVal][0][1] = prevArray[1]
                 cube[faceVal][0][2] = prevArray[2]
 
-            elif path[idx][1] == "d":
+            elif path[idx][1] == 2:
                 currArray[0] = cube[faceVal][2][2]
                 currArray[1] = cube[faceVal][2][1]
                 currArray[2] = cube[faceVal][2][0]

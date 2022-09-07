@@ -1,7 +1,6 @@
-from enum import Enum
-from lib2to3.pgen2.token import RPAR
-from turtle import color
 from face import *
+from part import *
+import random
 
 colorMap = {
         0 : "w",
@@ -12,11 +11,20 @@ colorMap = {
         5 : "y"
         }
 
-class facet:
-    def __init__(self,index) -> None:
-        self.index = index
-        self.color = colorMap[index[0]]
-        return None
+rotMap = {
+        "U": (0,True),
+        "I": (0,False),
+        "L": (1,True),
+        "P": (1,False),
+        "F": (2,True),
+        "G": (2,False),
+        "R": (3,True),
+        "T": (3,False),
+        "B": (4,True),
+        "N": (4,False),
+        "D": (5,True),
+        "S": (5,False)
+        }
 
 class cube:
     def __init__(self) -> None:
@@ -24,9 +32,38 @@ class cube:
         self.cubeArr = []
         self.populateCube()
         self.faceArr = [face(i) for i in range(6)]
+        self.edgeList = []
+        self.cornerList = []
         
         return None
 
+
+    def populatePieces(self):
+
+        self.edgeList.append(edge(0, (2,0,1),(0,2,1)))
+        self.edgeList.append(edge(1, (2,1,2),(3,1,0)))
+        self.edgeList.append(edge(2, (2,2,1),(5,0,1)))
+        self.edgeList.append(edge(3, (2,1,0),(1,1,2)))
+
+        self.edgeList.append(edge(4, (1,0,1),(0,1,0)))
+        self.edgeList.append(edge(5, (0,1,2),(3,0,1)))
+        self.edgeList.append(edge(6, (3,2,1),(5,1,2)))
+        self.edgeList.append(edge(7, (5,1,0),(1,2,1)))
+
+        self.edgeList.append(edge(8, (4,0,1),(0,0,1)))
+        self.edgeList.append(edge(9, (4,1,2),(1,1,0)))
+        self.edgeList.append(edge(10, (4,2,1),(5,2,1)))
+        self.edgeList.append(edge(11, (4,1,0),(3,1,2)))
+
+        self.cornerList.apend(corner(0, (2,0,0),(1,0,2),(0,2,0)))
+        self.cornerList.apend(corner(1, (2,0,2),(0,2,2),(3,0,0)))
+        self.cornerList.apend(corner(2, (2,2,2),(3,2,0),(5,0,2)))
+        self.cornerList.apend(corner(3, (2,2,0),(5,0,0),(1,2,2)))
+
+        self.cornerList.apend(corner(4, (4,0,0),(3,0,2),(0,0,2)))
+        self.cornerList.apend(corner(5, (4,0,2),(0,0,0),(1,0,0)))
+        self.cornerList.apend(corner(6, (4,2,2),(1,2,0),(5,2,0)))
+        self.cornerList.apend(corner(7, (4,2,0),(5,2,2),(3,2,2)))
 
     def populateCube(self):
 
@@ -77,25 +114,6 @@ class cube:
 
         print("\n")
 
-    def printCubeX(self):
-        
-        for i in range(len(self.cubeArr[0])):
-            for j in range(len(self.cubeArr[0][i])):
-                print(self.cubeArr[0][i][j].color)
-
-        
-        for i in range(len(self.cubeArr[1])):
-            tempStr = " "
-            tempStr = tempStr.join(self.cubeArr[1][i])+ " " + tempStr.join(self.cubeArr[2][i])+ " " + tempStr.join(self.cubeArr[3][i])+ " " + tempStr.join(self.cubeArr[4][i])
-            print(tempStr)
-
-        
-        for i in range(len(self.cubeArr[5])):
-            tempStr = " "
-            print("     ",tempStr.join(self.cubeArr[5][i]))
-            
-
-        print("\n")
             
 
     def turnCubeX(self, clockwise = True):
@@ -163,11 +181,31 @@ class cube:
         self.faceArr[5].rotateFace(self.cubeArr)
         self.faceArr[5].rotateFace(self.cubeArr)
 
+    def singleMove(self,s):
+        if s not in rotMap:
+            print("INVALID")
+            return
+        targetFace, clockwise = rotMap[s]
+        self.faceArr[targetFace].rotate(self.cubeArr, clockwise)
+
+    def multipleMoves(self,s):
+        for letter in s:
+            self.singleMove(letter)
+    
+    def scramble(self, numMoves):
+        for move in range(numMoves):
+            key, val = random.choice(list(rotMap.items()))
+            self.singleMove(key)
+
+
 
 newCube = cube()
 newCube.printCube()
+newCube.scramble(20)
+newCube.printCube()
 
 
+'''
 run = True
 while run:
     print(newCube.cubeArr[0])
@@ -223,3 +261,4 @@ while run:
     else:
         print("invalid")
     newCube.printCube()
+'''
