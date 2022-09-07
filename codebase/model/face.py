@@ -6,6 +6,7 @@ class face:
         
         self.index = index
         self.neighbors = []
+        self.reversedNeighbors = []
         self.populateNeighbors()
         self.Up = None
         self.Down = None
@@ -18,24 +19,25 @@ class face:
         match self.index:
             case 0:
                 self.neighbors = [(4,"u"),(3,"u"),(2,"u"),(1,"u")]
-                return
+                #self.reversed = [(1,"u"),(2,"u"),(3,"u"),(4,"u")]
             case 1:
                 self.neighbors = [(4,"r"),(5,"l"),(2,"l"),(0,"l")]
-                return
             case 2:
                 self.neighbors = [(3,"l"),(5,"u"),(1,"r"),(0,"d")]
-                return
+                #self.reversed = [(0,"d"),(1,"r"),(5,"u"),(3,"l")]
             case 3:
                 self.neighbors = [(4,"l"),(5,"r"),(2,"r"),(0,"r")]
-                return
             case 4:
                 self.neighbors = [(3,"r"),(5,"d"),(1,"l"),(0,"u")]
-                return
             case 5:
                 self.neighbors = [(4,"d"),(3,"d"),(2,"d"),(1,"d")]
-                return
+        
+        self.reversedNeighbors = self.neighbors[::-1]
 
 
+    def rotate(self, cube, clockwise = True):
+        self.rotateFace(cube, clockwise)
+        self.rotateSides(cube, clockwise)
     # transpose with reverse means counter clockwise rotation
     #   1 2 3   1 4 7   3 6 9
     #   4 5 6   2 5 8   2 5 8
@@ -66,76 +68,52 @@ class face:
                 currFace[col][row], currFace[row][col]
 
     
-    def rotateSides(self,cube):
+    def rotateSides(self,cube, clockwise = True):
+
+        path = self.neighbors if clockwise else self.reversedNeighbors
         
-        prev1 = prev2 = prev3 = 0
+        prevArray = [0,0,0]
+        currArray = [0,0,0]
 
-        for idx in range(len(self.neighbors)):
-            faceVal = self.neighbors[idx][0]
+        for idx in range(len(path)+1):
+            idx = idx % len(path)
+            faceVal = path[idx][0]
             
-            if self.neighbors[idx][1] == "l":
-                
-                curr1 = cube[faceVal][2][0]
-                curr2 = cube[faceVal][1][0]
-                curr3 = cube[faceVal][0][0]
+            if path[idx][1] == "l":
 
-                cube[faceVal][2][0] = prev1
-                cube[faceVal][1][0] = prev2
-                cube[faceVal][0][0] = prev3
+                currArray[0] = cube[faceVal][2][0]
+                currArray[1] = cube[faceVal][1][0]
+                currArray[2] = cube[faceVal][0][0]
 
-                prev1, prev2, prev3 = curr1, curr2, curr3
-                
-            elif self.neighbors[idx][1] == "r":
-                curr1 = cube[faceVal][0][2]
-                curr2 = cube[faceVal][1][2]
-                curr3 = cube[faceVal][2][2]
+                cube[faceVal][2][0] = prevArray[0]
+                cube[faceVal][1][0] = prevArray[1]
+                cube[faceVal][0][0] = prevArray[2]
 
-                cube[faceVal][0][2] = prev1
-                cube[faceVal][1][2] = prev2
-                cube[faceVal][2][2] = prev3
+            elif path[idx][1] == "r":
+                currArray[0] = cube[faceVal][0][2]
+                currArray[1] = cube[faceVal][1][2]
+                currArray[2] = cube[faceVal][2][2]
 
-                prev1, prev2, prev3 = curr1, curr2, curr3
+                cube[faceVal][0][2] = prevArray[0]
+                cube[faceVal][1][2] = prevArray[1]
+                cube[faceVal][2][2] = prevArray[2]
 
-            elif self.neighbors[idx][1] == "u":
-                curr1 = cube[faceVal][0][0]
-                curr2 = cube[faceVal][0][1]
-                curr3 = cube[faceVal][0][2]
+            elif path[idx][1] == "u":
+                currArray[0] = cube[faceVal][0][0]
+                currArray[1] = cube[faceVal][0][1]
+                currArray[2] = cube[faceVal][0][2]
 
-                cube[faceVal][0][0] = prev1
-                cube[faceVal][0][1] = prev2
-                cube[faceVal][0][2] = prev3
+                cube[faceVal][0][0] = prevArray[0]
+                cube[faceVal][0][1] = prevArray[1]
+                cube[faceVal][0][2] = prevArray[2]
 
-                prev1, prev2, prev3 = curr1, curr2, curr3
+            elif path[idx][1] == "d":
+                currArray[0] = cube[faceVal][2][2]
+                currArray[1] = cube[faceVal][2][1]
+                currArray[2] = cube[faceVal][2][0]
 
-            elif self.neighbors[idx][1] == "d":
-                curr1 = cube[faceVal][2][2]
-                curr2 = cube[faceVal][2][1]
-                curr3 = cube[faceVal][2][0]
+                cube[faceVal][2][2] = prevArray[0]
+                cube[faceVal][2][1] = prevArray[1]
+                cube[faceVal][2][0] = prevArray[2]
 
-                cube[faceVal][2][2] = prev1
-                cube[faceVal][2][1] = prev2
-                cube[faceVal][2][0] = prev3
-                
-                prev1, prev2, prev3 = curr1, curr2, curr3
-
-        faceVal = self.neighbors[0][0]
-        match self.neighbors[0][1]:
-            case "l":
-                cube[faceVal][2][0] = prev1
-                cube[faceVal][1][0] = prev2
-                cube[faceVal][0][0] = prev3
-
-            case "r":
-                cube[faceVal][0][2] = prev1
-                cube[faceVal][1][2] = prev2
-                cube[faceVal][2][2] = prev3
-            case "u":
-                cube[faceVal][0][0] = prev1
-                cube[faceVal][0][1] = prev2
-                cube[faceVal][0][2] = prev3
-                
-            case "d": 
-                cube[faceVal][2][2] = prev1
-                cube[faceVal][2][1] = prev2
-                cube[faceVal][2][0] = prev3
-
+            prevArray = currArray.copy() #if clockwise else currArray[::-1].copy()

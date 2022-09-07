@@ -1,4 +1,5 @@
 from enum import Enum
+from lib2to3.pgen2.token import RPAR
 from face import *
 '''
 
@@ -30,6 +31,15 @@ class facet:
 class cube:
     def __init__(self) -> None:
 
+        self.colorMap = {
+            0 : "w",
+            1 : "g", 
+            2 : "r", 
+            3 : "b", 
+            4 : "o", 
+            5 : "y"
+            }
+        
         self.cubeArr = []
         self.populateCube()
         self.faceArr = [face(i) for i in range(6)]
@@ -40,10 +50,14 @@ class cube:
     def populateCube(self):
 
         for currFace in range(6):
-            self.cubeArr.append([[currFace]*3 for i in range(3)])
+            self.cubeArr.append([[self.colorMap[currFace]]*3 for i in range(3)])
+    
+    def resetCube(self):
+        for currFace in range(6):
+            self.cubeArr[currFace] = [[self.colorMap[currFace]]*3 for i in range(3)]
 
         
-    def printCube(self):
+    def printCubeInt(self):
         
         for i in range(len(self.cubeArr[0])):
             print("         ",self.cubeArr[0][i])
@@ -60,10 +74,29 @@ class cube:
 
         print("\n")
         print("\n")
+
+
+    def printCube(self):
+        
+        for i in range(len(self.cubeArr[0])):
+            tempStr = " "
+            print("     ",tempStr.join(self.cubeArr[0][i]))
+
+        
+        for i in range(len(self.cubeArr[1])):
+            tempStr = " "
+            tempStr = tempStr.join(self.cubeArr[1][i])+ " " + tempStr.join(self.cubeArr[2][i])+ " " + tempStr.join(self.cubeArr[3][i])+ " " + tempStr.join(self.cubeArr[4][i])
+            print(tempStr)
+
+        
+        for i in range(len(self.cubeArr[5])):
+            tempStr = " "
+            print("     ",tempStr.join(self.cubeArr[5][i]))
             
 
+        print("\n")
+            
 
-    
     def turnCubeX(self, clockwise = True):
         temp = self.cubeArr[0]
 
@@ -137,6 +170,7 @@ while run:
     print(newCube.cubeArr[0])
     #print(newCube.faceArr[0].currFace)
     print(newCube.faceArr[0].index)
+    #print(newCube.faceArr[3].neighbors)
     val = input("input: ")
     if val == "end":
         run = False
@@ -154,23 +188,35 @@ while run:
         newCube.turnCubeZ(False)
 
     elif val == "T":
-        newCube.faceArr[0].rotateFace(newCube.cubeArr)
-        newCube.faceArr[0].rotateSides(newCube.cubeArr)
+        newCube.faceArr[0].rotate(newCube.cubeArr)
     elif val == "L":
-        newCube.faceArr[1].rotateFace(newCube.cubeArr)
-        newCube.faceArr[1].rotateSides(newCube.cubeArr)
+        newCube.faceArr[1].rotate(newCube.cubeArr)
     elif val == "F":
-        newCube.faceArr[2].rotateFace(newCube.cubeArr)
-        newCube.faceArr[2].rotateSides(newCube.cubeArr)
+        newCube.faceArr[2].rotate(newCube.cubeArr)
     elif val == "R":
-        newCube.faceArr[3].rotateFace(newCube.cubeArr)
-        newCube.faceArr[3].rotateSides(newCube.cubeArr)
+        newCube.faceArr[3].rotate(newCube.cubeArr)
     elif val == "B":
-        newCube.faceArr[4].rotateFace(newCube.cubeArr)
-        newCube.faceArr[4].rotateSides(newCube.cubeArr)
+        newCube.faceArr[4].rotate(newCube.cubeArr)
     elif val == "D":
-        newCube.faceArr[5].rotateFace(newCube.cubeArr)
-        newCube.faceArr[5].rotateSides(newCube.cubeArr)
+        newCube.faceArr[5].rotate(newCube.cubeArr)
+    
+    elif val == "TP":
+        newCube.faceArr[0].rotate(newCube.cubeArr, False)
+    elif val == "LP":
+        newCube.faceArr[1].rotate(newCube.cubeArr, False)
+    elif val == "FP":
+        newCube.faceArr[2].rotate(newCube.cubeArr, False)
+    elif val == "RP":
+        newCube.faceArr[3].rotate(newCube.cubeArr, False)
+    elif val == "BP":
+        newCube.faceArr[4].rotate(newCube.cubeArr, False)
+    elif val == "DP":
+        newCube.faceArr[5].rotate(newCube.cubeArr, False)
+
+    
+    elif val == "Reset":
+        newCube.resetCube()
+
     else:
         print("invalid")
     newCube.printCube()
