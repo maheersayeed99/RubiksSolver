@@ -4,12 +4,41 @@ class face:
 
     def __init__(self, index, cube) -> None:
         
-
+        self.cube = cube
+        self.index = index
         self.currFace = cube[index]
         self.neighbors = []
+        self.Up = None
+        self.Down = None
+        self.Left = None
+        self.Right = None
 
         return None
 
+    '''
+
+    def populateNeighbors(self):
+        match self.index:
+            case 0:
+                self.Up = ((),(),())
+                self.Down = ((),(),())
+                self.Left = ((),(),())
+                self.Right = ((),(),())
+                return
+            case 1:
+                return
+            case 2:
+                return
+            case 3:
+                return
+            case 4:
+                return
+            case 5:
+                return
+            
+        return None
+
+    '''
 
     # transpose with reverse means counter clockwise rotation
     #   1 2 3   1 4 7   3 6 9
@@ -37,5 +66,12 @@ class face:
             for col in range(row, cols):
                 self.currFace[row][col],self.currFace[col][row] = \
                 self.currFace[col][row], self.currFace[row][col]
+'''
+    def rotateSides(self):
+        temp1,temp2,temp3 = cube[][][], cube[][][], cube[][][]
+        cube[][][], cube[][][], cube[][][] = cube[][][], cube[][][], cube[][][]
+        cube[][][], cube[][][], cube[][][] = cube[][][], cube[][][], cube[][][]
+        cube[][][], cube[][][], cube[][][] = cube[][][], cube[][][], cube[][][]
+        cube[][][], cube[][][], cube[][][] = temp1, temp2, temp3
 
-
+'''
