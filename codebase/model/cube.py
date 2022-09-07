@@ -1,44 +1,25 @@
 from enum import Enum
 from lib2to3.pgen2.token import RPAR
+from turtle import color
 from face import *
-'''
 
-CENTERS
-
-      # # #
-      # # #
-      # # #
-# # # # # # # # # # # #
-# # # # # # # # # # # #
-# # # # # # # # # # # #   
-      # # #
-      # # #
-      # # #
-
-'''
-class color(Enum):
-    white = 1
-    green = 2
-    red = 3
-    blue = 4
-    orange = 5
-    yellow = 6
+colorMap = {
+        0 : "w",
+        1 : "g", 
+        2 : "r", 
+        3 : "b", 
+        4 : "o", 
+        5 : "y"
+        }
 
 class facet:
-    def __init__(self) -> None:
+    def __init__(self,index) -> None:
+        self.index = index
+        self.color = colorMap[index[0]]
         return None
 
 class cube:
     def __init__(self) -> None:
-
-        self.colorMap = {
-            0 : "w",
-            1 : "g", 
-            2 : "r", 
-            3 : "b", 
-            4 : "o", 
-            5 : "y"
-            }
         
         self.cubeArr = []
         self.populateCube()
@@ -50,11 +31,11 @@ class cube:
     def populateCube(self):
 
         for currFace in range(6):
-            self.cubeArr.append([[self.colorMap[currFace]]*3 for i in range(3)])
+            self.cubeArr.append([[colorMap[currFace]]* 3 for i in range(3)])
     
     def resetCube(self):
         for currFace in range(6):
-            self.cubeArr[currFace] = [[self.colorMap[currFace]]*3 for i in range(3)]
+            self.cubeArr[currFace] = [[colorMap[currFace]]*3 for i in range(3)]
 
         
     def printCubeInt(self):
@@ -81,6 +62,26 @@ class cube:
         for i in range(len(self.cubeArr[0])):
             tempStr = " "
             print("     ",tempStr.join(self.cubeArr[0][i]))
+
+        
+        for i in range(len(self.cubeArr[1])):
+            tempStr = " "
+            tempStr = tempStr.join(self.cubeArr[1][i])+ " " + tempStr.join(self.cubeArr[2][i])+ " " + tempStr.join(self.cubeArr[3][i])+ " " + tempStr.join(self.cubeArr[4][i])
+            print(tempStr)
+
+        
+        for i in range(len(self.cubeArr[5])):
+            tempStr = " "
+            print("     ",tempStr.join(self.cubeArr[5][i]))
+            
+
+        print("\n")
+
+    def printCubeX(self):
+        
+        for i in range(len(self.cubeArr[0])):
+            for j in range(len(self.cubeArr[0][i])):
+                print(self.cubeArr[0][i][j].color)
 
         
         for i in range(len(self.cubeArr[1])):
@@ -165,6 +166,8 @@ class cube:
 
 newCube = cube()
 newCube.printCube()
+
+
 run = True
 while run:
     print(newCube.cubeArr[0])
