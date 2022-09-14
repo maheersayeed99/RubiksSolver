@@ -1,6 +1,7 @@
 from face import *
 from part import *
 import random
+import copy
 
 colorMap = {
         0 : "w",
@@ -27,10 +28,13 @@ rotMap = {
         }
 
 class facet:
-    def __init__(self) -> None:
-        self.color = ""
+    def __init__(self, color) -> None:
+        self.color = color
         self.parent = None
+        self.faces = [0]*6
 
+    def isSame(self, other):
+        return self.faces == other.faces
 
 
 class cube:
@@ -38,17 +42,13 @@ class cube:
         
         self.cubeArr = []
         self.populateCube()
-        self.startArr = self.cubeArr.copy()
-        self.resetCube()
-        self.faceArr = [face(i) for i in range(6)]
+        self.faceArr = [face(i, self.cubeArr) for i in range(6)]
+        self.startArr = copy.deepcopy(self.cubeArr)
         
         
         self.pieceList = []
         self.populatePieces()
-
-        
         return None
-
 
     def populatePieces(self):
 
@@ -78,18 +78,29 @@ class cube:
         self.pieceList.append(corner(19, (4,2,0),(5,2,2),(3,2,2)))
 
     def populateCube(self):
+        for i in  range(6):
+            self.cubeArr.append([[None]* 3 for i in range(3)])
 
         for currFace in range(6):
-            self.cubeArr.append([[colorMap[currFace]]* 3 for i in range(3)])
+            for row in range(3):
+                for col in range(3):
+                    tempFacet = facet(colorMap[currFace])
+                    self.cubeArr[currFace][row][col] = tempFacet
+
+            #self.cubeArr.append([[colorMap[currFace]]* 3 for i in range(3)])
         
     
     def resetCube(self):
-        for currFace in range(6):
-            self.cubeArr[currFace] = [[colorMap[currFace]]*3 for i in range(3)]
+        #for currFace in range(6):
+        #    self.cubeArr[currFace] = [[colorMap[currFace]]*3 for i in range(3)]
+        self.cubeArr = self.startArr
+        self.startArr = copy.deepcopy(self.cubeArr)
+
+
 
         
 
-    def printCube(self, cube):
+    '''def printCube(self, cube):
         
         for i in range(len(cube[0])):
             tempStr = " "
@@ -107,7 +118,24 @@ class cube:
             print("     ",tempStr.join(cube[5][i]))
             
 
-        print("\n")
+        print("\n")'''
+    
+    def printCube(self,cube):
+
+        for i in range(len(cube[0])):
+            print("     ",cube[0][i][0].color,cube[0][i][1].color,cube[0][i][2].color)
+
+        for i in range(len(cube[1])):
+            print(cube[1][i][0].color, cube[1][i][1].color, cube[1][i][2].color, \
+                    cube[2][i][0].color,cube[2][i][1].color,cube[2][i][2].color, \
+                    cube[3][i][0].color,cube[3][i][1].color,cube[3][i][2].color, \
+                    cube[4][i][0].color,cube[4][i][1].color,cube[4][i][2].color)
+
+
+        for i in range(len(cube[5])):
+            print("     ",cube[5][i][0].color,cube[5][i][1].color,cube[5][i][2].color)
+
+
 
             
 
@@ -258,20 +286,32 @@ class change:
         self.targetPiece = None
 
 newCube = cube()
-newCube.scramble(20)
 newCube.printCube(newCube.cubeArr)
+print("check")
+print(newCube.cubeArr[0][0][0])
+print(newCube.cubeArr[0][0][1])
+
+newCube.faceArr[0].rotate(newCube.cubeArr)
+
+newCube.printCube(newCube.cubeArr)
+print(newCube.cubeArr[1][0][0].faces)
 newCube.printCube(newCube.startArr)
+print(newCube.startArr[1][0][0].faces)
+
+print(newCube.cubeArr[1][0][0].isSame(newCube.startArr[1][0][0]))
+
+#newCube.printCube(newCube.startArr)
 
 
-print(newCube.findPiece(2, newCube.cubeArr))
+#print(newCube.findPiece(2, newCube.cubeArr))
 
 
 #newCube.scramble(20)
 #newCube.printCube()
 
 
-
-'''run = True
+'''
+run = True
 while run:
     print(newCube.cubeArr[0])
     #print(newCube.faceArr[0].currFace)

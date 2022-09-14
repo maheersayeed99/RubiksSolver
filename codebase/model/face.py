@@ -1,13 +1,13 @@
 class face:
 
-    def __init__(self, index) -> None:
+    def __init__(self, index, cube) -> None:
         
         self.index = index
         self.neighbors = []
         self.reversedNeighbors = []
         self.populateNeighbors()
-        self.rotMap = {}
-        self.reverseRotMao = {}
+        self.setFacetParents(cube)
+        
         return None
     
     def populateNeighbors(self):
@@ -27,6 +27,39 @@ class face:
                 self.neighbors = [(1,2),(2,2),(3,2),(4,2)]
 
         self.reversedNeighbors = self.neighbors[::-1]
+
+    
+    def setFacetParents(self,cube):
+        #center
+        cube[self.index][1][1].faces[self.index]+=1
+        # up edge
+        cube[self.index][0][1].faces[self.index]+=1
+        cube[self.index][0][1].faces[self.neighbors[0][0]]+=1
+        # right edge
+        cube[self.index][1][2].faces[self.index]+=1
+        cube[self.index][1][2].faces[self.neighbors[1][0]]+=1
+        # down edge
+        cube[self.index][2][1].faces[self.index]+=1
+        cube[self.index][2][1].faces[self.neighbors[2][0]]+=1
+        # left edge
+        cube[self.index][1][0].faces[self.index]+=1
+        cube[self.index][1][0].faces[self.neighbors[3][0]]+=1
+        # up right corner
+        cube[self.index][0][2].faces[self.index]+=1
+        cube[self.index][0][2].faces[self.neighbors[0][0]]+=1
+        cube[self.index][0][2].faces[self.neighbors[1][0]]+=1
+        # down right corner
+        cube[self.index][2][2].faces[self.index]+=1
+        cube[self.index][2][2].faces[self.neighbors[2][0]]+=1
+        cube[self.index][2][2].faces[self.neighbors[1][0]]+=1
+        # down left corner
+        cube[self.index][2][0].faces[self.index]+=1
+        cube[self.index][2][0].faces[self.neighbors[2][0]]+=1
+        cube[self.index][2][0].faces[self.neighbors[3][0]]+=1
+        # up left corner
+        cube[self.index][0][0].faces[self.index]+=1
+        cube[self.index][0][0].faces[self.neighbors[0][0]]+=1
+        cube[self.index][0][0].faces[self.neighbors[3][0]]+=1
 
 
     def rotate(self, cube, clockwise = True):
