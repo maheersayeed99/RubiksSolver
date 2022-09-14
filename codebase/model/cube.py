@@ -3,7 +3,7 @@ from part import *
 import random
 import copy
 
-colorMap = {
+colorMap = {                        # This map is used to initialize face colors when the cube is first made
         0 : "w",
         1 : "g", 
         2 : "r", 
@@ -12,48 +12,78 @@ colorMap = {
         5 : "y"
         }
 
-rotMap = {
+rotMap = {                          # This map is used to find out which face to rotate for the corresponding move
         "U": (0,True),
         "I": (0,False),
         "L": (1,True),
-        "P": (1,False),
+        "K": (1,False),
         "F": (2,True),
         "G": (2,False),
         "R": (3,True),
-        "T": (3,False),
+        "E": (3,False),
         "B": (4,True),
-        "N": (4,False),
+        "V": (4,False),
         "D": (5,True),
         "S": (5,False)
         }
 
-class facet:
-    def __init__(self, color) -> None:
+revMap = {                          # This map is used to reverse moves. When a move is made, the reverse move is appended to the self.history stack
+        "U": "I",
+        "I": "U",
+        "L": "K",
+        "K": "L",
+        "F": "G",
+        "G": "F",
+        "R": "E",
+        "E": "R",
+        "B": "V",
+        "V": "B",
+        "D": "S",
+        "S": "D"
+        }
+
+
+class facet:                                                                # Every cell of the cube is called a facet, regardless of type of piece
+    def __init__(self, color) -> None:                                      # Main cube structure is occupied by these facect objects
         self.color = color
         self.parent = None
-        self.faces = [0]*6
+        self.faces = [0]*6                                                  # This array shows all the colors that are in the parent piece that this edge is a part of
+                                                                            # Follows same structure as colorMap
 
     def isSame(self, other):
-        return self.color == other.color and self.faces == other.faces
+        return self.color == other.color and self.faces == other.faces      # Two facets of different cubes can represent the same piece if the face color and faces list are the same
+
+
+class node:                                             # Nodes are used when the graph is generated for pathfinding
+    def __init__(self,pos) -> None:                     # Node graph is strored in self.solveGraph map
+        self.pos = pos
+        self.changeList = dict()                        # change list maps every move to the node at the resulting location
+        
+
+class change:                                           
+    def __init__(self, move, targetNode) -> None:       # every node has a list of changes based on the moves stored in the graph
+        self.parent = None                              # previous edge
+        self.move = move                                # The move itself will be used for backtracking purposes
+        self.targetNode = targetNode                    # node at new location resulting from the move
 
 
 class cube:
     def __init__(self) -> None:
         
-        self.cubeArr = []
+        self.cubeArr = []                                               # Main cube structure
         self.populateCube()
-        self.faceArr = [face(i, self.cubeArr) for i in range(6)]
-        self.startArr = copy.deepcopy(self.cubeArr)
+        self.faceArr = [face(i, self.cubeArr) for i in range(6)]        # List of face objects used for rotation
+        self.startArr = copy.deepcopy(self.cubeArr)                     # Copy of cube that is treated as solved state
         
         
-        self.pieceList = []
-        self.populatePieces()
+        #self.pieceList = []
+        #self.populatePieces()
 
-
-        self.solveGraph = []
+        self.history = []                                               # Used for reversing moves
+        self.solveGraph = dict()                                        # Graph used for backtracking
         return None
 
-    def populatePieces(self):
+    '''def populatePieces(self):
 
         self.pieceList.append(edge(0, (2,0,1),(0,2,1)))
         self.pieceList.append(edge(1, (2,1,2),(3,1,0)))
@@ -78,7 +108,7 @@ class cube:
         self.pieceList.append(corner(16, (4,0,0),(3,0,2),(0,0,2)))
         self.pieceList.append(corner(17, (4,0,2),(0,0,0),(1,0,0)))
         self.pieceList.append(corner(18, (4,2,2),(1,2,0),(5,2,0)))
-        self.pieceList.append(corner(19, (4,2,0),(5,2,2),(3,2,2)))
+        self.pieceList.append(corner(19, (4,2,0),(5,2,2),(3,2,2)))'''
 
     def populateCube(self):
         for i in  range(6):
@@ -87,41 +117,16 @@ class cube:
         for currFace in range(6):
             for row in range(3):
                 for col in range(3):
-                    tempFacet = facet(colorMap[currFace])
+                    tempFacet = facet(colorMap[currFace])               # Every cell in 3D array is populated with a facet object
                     self.cubeArr[currFace][row][col] = tempFacet
-
-            #self.cubeArr.append([[colorMap[currFace]]* 3 for i in range(3)])
         
     
-    def resetCube(self):
-        #for currFace in range(6):
-        #    self.cubeArr[currFace] = [[colorMap[currFace]]*3 for i in range(3)]
+    def resetCube(self):                                                # Resets Cube to solved state (Cheating, not actually solving)
+        del self.cubeArr
         self.cubeArr = self.startArr
         self.startArr = copy.deepcopy(self.cubeArr)
 
 
-
-        
-
-    '''def printCube(self, cube):
-        
-        for i in range(len(cube[0])):
-            tempStr = " "
-            print("     ",tempStr.join(cube[0][i]))
-
-        
-        for i in range(len(cube[1])):
-            tempStr = " "
-            tempStr = tempStr.join(cube[1][i])+ " " + tempStr.join(cube[2][i])+ " " + tempStr.join(cube[3][i])+ " " + tempStr.join(cube[4][i])
-            print(tempStr)
-
-        
-        for i in range(len(cube[5])):
-            tempStr = " "
-            print("     ",tempStr.join(cube[5][i]))
-            
-
-        print("\n")'''
     
     def printCube(self,cube):
 
@@ -140,9 +145,7 @@ class cube:
 
 
 
-            
-
-    def turnCubeX(self, clockwise = True):
+    def turnCubeX(self, clockwise = True):                                                  # Turn Whole Cube around X axis
         temp = self.cubeArr[0]
         tempStart = self.startArr[0]
 
@@ -166,7 +169,7 @@ class cube:
         self.faceArr[5].rotateFace(self.cubeArr, clockwise)
     
 
-    def turnCubeZ(self, clockwise = True):
+    def turnCubeZ(self, clockwise = True):                                              # Turn Whole Cube around Z axis
         temp = self.cubeArr[1]
         tempStart = self.startArr[1]
 
@@ -186,7 +189,7 @@ class cube:
         self.faceArr[5].rotateFace(self.cubeArr, not clockwise)
 
     
-    def turnCubeY(self, clockwise = True):
+    def turnCubeY(self, clockwise = True):                                              # Turn Whole Cube around Y axis
         
         temp = self.cubeArr[0]
         tempStart = self.startArr[0]
@@ -211,20 +214,28 @@ class cube:
         self.faceArr[5].rotateFace(self.cubeArr)
 
     
-    def singleMove(self,s):
-        if s not in rotMap:
-            print("INVALID")
-            return
-        targetFace, clockwise = rotMap[s]
-        self.faceArr[targetFace].rotate(self.cubeArr, clockwise)
+    def singleMove(self,move,cube,reverse = False):
+        
+        for turn in move:
+            if turn not in rotMap:
+                print("INVALID")
+                return
+            targetFace, direction = rotMap[turn]                    # Retrieve the face and direction from map based on input
+            self.faceArr[targetFace].rotate(cube, direction)
+            if not reverse:
+                self.history.append(revMap[turn])
+
+    def reverseMove(self,s,cube):
+        for moves in range(len(s)):
+            self.singleMove(self.history.pop(),cube, True)          # Reversing moves uses the history stack initialized earlier
 
     
-    def multipleMoves(self,s):
-        for letter in s:
-            self.singleMove(letter)
+    def multipleMoves(self,moves):                                  # Performs multiple moves from an array
+        for move in moves:
+            self.singleMove(move)
     
     
-    def scramble(self, numMoves):
+    def scramble(self, numMoves):                                   # Scrambles the cube by randomly performing a set number of moves
         for move in range(numMoves):
             key, val = random.choice(list(rotMap.items()))
             self.singleMove(key)
@@ -260,25 +271,45 @@ class cube:
         return None
     '''
 
-    def findPiece(self, pos, cube1, cube2):
-        for currFace in range(6):
+    def findPiece(self, pos, cube1, cube2):                                                 # iterates through 3d array to find matching piece
+        for currFace in range(6):                                                           # Can be improved maybe with another map? Hard to say
             for row in range(3):
                 for col in range(3):
                     if cube1[pos[0]][pos[1]][pos[2]].isSame(cube2[currFace][row][col]):
                         return (currFace, row, col)
 
 
-    def generateGraph(self, moves):
-        self.solveGraph = []
+    def generateGraph(self, moves):                                                     # Makes graph mapping index changes from a group of moves
+        self.solveGraph = dict()                                                        # clear map
 
         for currFace in range(6):
-            temp2 = []
             for row in range(3):
-                temp1 = []
                 for col in range(3):
-                    temp1.append(node((currFace,row,col)))
-                temp2.append(temp1)
-            self.solveGraph.append(temp2)
+                    self.solveGraph[(currFace,row,col)] = node((currFace,row,col))      # initialize map
+
+        tempCube = copy.deepcopy(self.cubeArr)                                          # make temporaty cube
+
+        for move in moves:
+            
+            self.singleMove(move,tempCube)                                              # perform the current move
+            
+            #self.printCube(tempCube)
+
+            for currFace in range(6):                                                                           # iterate through cube 3d array
+                for row in range(3):
+                    for col in range(3):
+                        if self.cubeArr[currFace][row][col].isSame(tempCube[currFace][row][col]) == False:      # check if the facet is different from before
+                            newPos = self.findPiece((currFace,row,col), self.cubeArr, tempCube)                 # if not get the two nodes from the graph
+                            currentNode = self.solveGraph[(currFace,row,col)]
+                            targetNode = self.solveGraph[newPos]
+                            newChange = change(move, targetNode)                                                # make a change object in the first node whose target is the second node
+                            currentNode.changeList[move] = newChange                                            # add change object to the first nodes change map
+
+
+            self.reverseMove(move,tempCube)                                             # reverse the current move
+
+        del tempCube            # free memory
+
         
 
 
@@ -306,25 +337,28 @@ class cube:
     # every facet has a list of edges that move it to another facet based on a move
     # for pathfind,
 
-class node:
-    def __init__(self,pos) -> None:
-        self.pos = pos
-        self.parent = None
-        self.changeList = []
-        
-class change:
-    def __init__(self) -> None:
-        self.parent = None
-        self.change = ""
-        self.targetPiece = None
 
 newCube = cube()
-newCube.scramble(20)
+newCube.generateGraph(["F","R","B","L","U","D","G","E","V","K","I","S"])
+
+
 newCube.printCube(newCube.cubeArr)
-newCube.printCube(newCube.startArr)
-print(newCube.findPiece((2,1,2),newCube.startArr,newCube.cubeArr))
-print(newCube.cubeArr[0][0][0])
-print(newCube.cubeArr[0][0][1])
+
+newCube.singleMove("RUE", newCube.cubeArr)
+print("\n")
+
+newCube.printCube(newCube.cubeArr)
+
+newCube.reverseMove("RUE",newCube.cubeArr)
+print("\n")
+
+newCube.printCube(newCube.cubeArr)
+newCube.resetCube()
+
+
+for key in newCube.solveGraph:
+    print(key, " ", len(newCube.solveGraph[key].changeList))
+
 
 #newCube.faceArr[0].rotate(newCube.cubeArr)
 
