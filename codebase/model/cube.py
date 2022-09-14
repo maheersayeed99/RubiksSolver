@@ -34,7 +34,7 @@ class facet:
         self.faces = [0]*6
 
     def isSame(self, other):
-        return self.faces == other.faces
+        return self.color == other.color and self.faces == other.faces
 
 
 class cube:
@@ -48,6 +48,9 @@ class cube:
         
         self.pieceList = []
         self.populatePieces()
+
+
+        self.solveGraph = []
         return None
 
     def populatePieces(self):
@@ -246,7 +249,7 @@ class cube:
 
 
     # find piece
-
+    '''
     def findPiece(self, target, currCube):
 
         targetPiece = self.pieceList[target]
@@ -255,6 +258,29 @@ class cube:
             if self.pieceList[idx].locate(targetPiece,currCube,self.startArr):
                 return idx
         return None
+    '''
+
+    def findPiece(self, pos, cube1, cube2):
+        for currFace in range(6):
+            for row in range(3):
+                for col in range(3):
+                    if cube1[pos[0]][pos[1]][pos[2]].isSame(cube2[currFace][row][col]):
+                        return (currFace, row, col)
+
+
+    def generateGraph(self, moves):
+        self.solveGraph = []
+
+        for currFace in range(6):
+            temp2 = []
+            for row in range(3):
+                temp1 = []
+                for col in range(3):
+                    temp1.append(node((currFace,row,col)))
+                temp2.append(temp1)
+            self.solveGraph.append(temp2)
+        
+
 
 
     
@@ -274,8 +300,15 @@ class cube:
     # Check if
     
 
-class state:
-    def __init__(self) -> None:
+
+    # NEW POWERS
+    # make list of nodes for every facet
+    # every facet has a list of edges that move it to another facet based on a move
+    # for pathfind,
+
+class node:
+    def __init__(self,pos) -> None:
+        self.pos = pos
         self.parent = None
         self.changeList = []
         
@@ -286,19 +319,14 @@ class change:
         self.targetPiece = None
 
 newCube = cube()
+newCube.scramble(20)
 newCube.printCube(newCube.cubeArr)
-print("check")
+newCube.printCube(newCube.startArr)
+print(newCube.findPiece((2,1,2),newCube.startArr,newCube.cubeArr))
 print(newCube.cubeArr[0][0][0])
 print(newCube.cubeArr[0][0][1])
 
-newCube.faceArr[0].rotate(newCube.cubeArr)
-
-newCube.printCube(newCube.cubeArr)
-print(newCube.cubeArr[1][0][0].faces)
-newCube.printCube(newCube.startArr)
-print(newCube.startArr[1][0][0].faces)
-
-print(newCube.cubeArr[1][0][0].isSame(newCube.startArr[1][0][0]))
+#newCube.faceArr[0].rotate(newCube.cubeArr)
 
 #newCube.printCube(newCube.startArr)
 
