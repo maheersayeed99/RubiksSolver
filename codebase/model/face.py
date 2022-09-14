@@ -6,6 +6,8 @@ class face:
         self.neighbors = []
         self.reversedNeighbors = []
         self.populateNeighbors()
+        self.rotMap = {}
+        self.reverseRotMao = {}
         return None
     
     def populateNeighbors(self):
@@ -24,19 +26,6 @@ class face:
             case 5:
                 self.neighbors = [(1,2),(2,2),(3,2),(4,2)]
 
-            #case 0:
-            #    self.neighbors = [(4,"u"),(3,"u"),(2,"u"),(1,"u")]
-            #case 1:
-            #    self.neighbors = [(0,"l"),(2,"l"),(5,"l"),(4,"r")]
-            #case 2:
-            #    self.neighbors = [(0,"d"),(3,"l"),(5,"u"),(1,"r")]
-            #case 3:
-            #    self.neighbors = [(0,"r"),(4,"l"),(5,"r"),(2,"r")]
-            #case 4:
-            #    self.neighbors = [(0,"u"),(1,"l"),(5,"d"),(3,"r")]
-            #case 5:
-            #    self.neighbors = [(1,"d"),(2,"d"),(3,"d"),(4,"d")]
-            
         self.reversedNeighbors = self.neighbors[::-1]
 
 

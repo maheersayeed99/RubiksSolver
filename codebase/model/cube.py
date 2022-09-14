@@ -26,90 +26,85 @@ rotMap = {
         "S": (5,False)
         }
 
+class facet:
+    def __init__(self) -> None:
+        self.color = ""
+        self.parent = None
+
+
+
 class cube:
     def __init__(self) -> None:
         
         self.cubeArr = []
         self.populateCube()
+        self.startArr = self.cubeArr.copy()
+        self.resetCube()
         self.faceArr = [face(i) for i in range(6)]
-        self.edgeList = []
-        self.cornerList = []
+        
+        
+        self.pieceList = []
+        self.populatePieces()
+
         
         return None
 
 
     def populatePieces(self):
 
-        self.edgeList.append(edge(0, (2,0,1),(0,2,1)))
-        self.edgeList.append(edge(1, (2,1,2),(3,1,0)))
-        self.edgeList.append(edge(2, (2,2,1),(5,0,1)))
-        self.edgeList.append(edge(3, (2,1,0),(1,1,2)))
+        self.pieceList.append(edge(0, (2,0,1),(0,2,1)))
+        self.pieceList.append(edge(1, (2,1,2),(3,1,0)))
+        self.pieceList.append(edge(2, (2,2,1),(5,0,1)))
+        self.pieceList.append(edge(3, (2,1,0),(1,1,2)))
 
-        self.edgeList.append(edge(4, (1,0,1),(0,1,0)))
-        self.edgeList.append(edge(5, (0,1,2),(3,0,1)))
-        self.edgeList.append(edge(6, (3,2,1),(5,1,2)))
-        self.edgeList.append(edge(7, (5,1,0),(1,2,1)))
+        self.pieceList.append(edge(4, (1,0,1),(0,1,0)))
+        self.pieceList.append(edge(5, (0,1,2),(3,0,1)))
+        self.pieceList.append(edge(6, (3,2,1),(5,1,2)))
+        self.pieceList.append(edge(7, (5,1,0),(1,2,1)))
 
-        self.edgeList.append(edge(8, (4,0,1),(0,0,1)))
-        self.edgeList.append(edge(9, (4,1,2),(1,1,0)))
-        self.edgeList.append(edge(10, (4,2,1),(5,2,1)))
-        self.edgeList.append(edge(11, (4,1,0),(3,1,2)))
+        self.pieceList.append(edge(8, (4,0,1),(0,0,1)))
+        self.pieceList.append(edge(9, (4,1,2),(1,1,0)))
+        self.pieceList.append(edge(10, (4,2,1),(5,2,1)))
+        self.pieceList.append(edge(11, (4,1,0),(3,1,2)))
 
-        self.cornerList.apend(corner(0, (2,0,0),(1,0,2),(0,2,0)))
-        self.cornerList.apend(corner(1, (2,0,2),(0,2,2),(3,0,0)))
-        self.cornerList.apend(corner(2, (2,2,2),(3,2,0),(5,0,2)))
-        self.cornerList.apend(corner(3, (2,2,0),(5,0,0),(1,2,2)))
+        self.pieceList.append(corner(12, (2,0,0),(1,0,2),(0,2,0)))
+        self.pieceList.append(corner(13, (2,0,2),(0,2,2),(3,0,0)))
+        self.pieceList.append(corner(14, (2,2,2),(3,2,0),(5,0,2)))
+        self.pieceList.append(corner(15, (2,2,0),(5,0,0),(1,2,2)))
 
-        self.cornerList.apend(corner(4, (4,0,0),(3,0,2),(0,0,2)))
-        self.cornerList.apend(corner(5, (4,0,2),(0,0,0),(1,0,0)))
-        self.cornerList.apend(corner(6, (4,2,2),(1,2,0),(5,2,0)))
-        self.cornerList.apend(corner(7, (4,2,0),(5,2,2),(3,2,2)))
+        self.pieceList.append(corner(16, (4,0,0),(3,0,2),(0,0,2)))
+        self.pieceList.append(corner(17, (4,0,2),(0,0,0),(1,0,0)))
+        self.pieceList.append(corner(18, (4,2,2),(1,2,0),(5,2,0)))
+        self.pieceList.append(corner(19, (4,2,0),(5,2,2),(3,2,2)))
 
     def populateCube(self):
 
         for currFace in range(6):
             self.cubeArr.append([[colorMap[currFace]]* 3 for i in range(3)])
+        
     
     def resetCube(self):
         for currFace in range(6):
             self.cubeArr[currFace] = [[colorMap[currFace]]*3 for i in range(3)]
 
         
-    def printCubeInt(self):
+
+    def printCube(self, cube):
         
-        for i in range(len(self.cubeArr[0])):
-            print("         ",self.cubeArr[0][i])
-
-        print("\n")
-
-        for i in range(len(self.cubeArr[1])):
-            print(self.cubeArr[1][i], self.cubeArr[2][i], self.cubeArr[3][i], self.cubeArr[4][i])
-
-        print("\n")
-
-        for i in range(len(self.cubeArr[5])):
-            print("         ",self.cubeArr[5][i])
-
-        print("\n")
-        print("\n")
-
-
-    def printCube(self):
-        
-        for i in range(len(self.cubeArr[0])):
+        for i in range(len(cube[0])):
             tempStr = " "
-            print("     ",tempStr.join(self.cubeArr[0][i]))
+            print("     ",tempStr.join(cube[0][i]))
 
         
-        for i in range(len(self.cubeArr[1])):
+        for i in range(len(cube[1])):
             tempStr = " "
-            tempStr = tempStr.join(self.cubeArr[1][i])+ " " + tempStr.join(self.cubeArr[2][i])+ " " + tempStr.join(self.cubeArr[3][i])+ " " + tempStr.join(self.cubeArr[4][i])
+            tempStr = tempStr.join(cube[1][i])+ " " + tempStr.join(cube[2][i])+ " " + tempStr.join(cube[3][i])+ " " + tempStr.join(cube[4][i])
             print(tempStr)
 
         
-        for i in range(len(self.cubeArr[5])):
+        for i in range(len(cube[5])):
             tempStr = " "
-            print("     ",tempStr.join(self.cubeArr[5][i]))
+            print("     ",tempStr.join(cube[5][i]))
             
 
         print("\n")
@@ -118,18 +113,19 @@ class cube:
 
     def turnCubeX(self, clockwise = True):
         temp = self.cubeArr[0]
+        tempStart = self.startArr[0]
 
         if clockwise == True:
-            self.cubeArr[0] = self.cubeArr[1]
-            self.cubeArr[1] = self.cubeArr[5]
-            self.cubeArr[5] = self.cubeArr[3]
-            self.cubeArr[3] = temp
+            self.cubeArr[0], self.startArr[0] = self.cubeArr[1], self.startArr[1]
+            self.cubeArr[1], self.startArr[1] = self.cubeArr[5], self.startArr[5]
+            self.cubeArr[5], self.startArr[5] = self.cubeArr[3], self.startArr[3]
+            self.cubeArr[3], self.startArr[3] = temp, tempStart
 
         else:
-            self.cubeArr[0] = self.cubeArr[3]
-            self.cubeArr[3] = self.cubeArr[5]
-            self.cubeArr[5] = self.cubeArr[1]
-            self.cubeArr[1] = temp
+            self.cubeArr[0], self.startArr[0] = self.cubeArr[3], self.startArr[3]
+            self.cubeArr[3], self.startArr[3] = self.cubeArr[5], self.startArr[5]
+            self.cubeArr[5], self.startArr[5] = self.cubeArr[1], self.startArr[1]
+            self.cubeArr[1], self.startArr[1] = temp, tempStart
 
         self.faceArr[0].rotateFace(self.cubeArr, clockwise)
         self.faceArr[1].rotateFace(self.cubeArr, clockwise)
@@ -141,18 +137,19 @@ class cube:
 
     def turnCubeZ(self, clockwise = True):
         temp = self.cubeArr[1]
+        tempStart = self.startArr[1]
 
         if clockwise == True:
-            self.cubeArr[1] = self.cubeArr[2]
-            self.cubeArr[2] = self.cubeArr[3]
-            self.cubeArr[3] = self.cubeArr[4]
-            self.cubeArr[4] = temp
+            self.cubeArr[1], self.startArr[1] = self.cubeArr[2], self.startArr[2]
+            self.cubeArr[2], self.startArr[2] = self.cubeArr[3], self.startArr[3]
+            self.cubeArr[3], self.startArr[3] = self.cubeArr[4], self.startArr[4]
+            self.cubeArr[4], self.startArr[4] = temp, tempStart
 
         else:
-            self.cubeArr[1] = self.cubeArr[4]
-            self.cubeArr[4] = self.cubeArr[3]
-            self.cubeArr[3] = self.cubeArr[2]
-            self.cubeArr[2] = temp
+            self.cubeArr[1], self.startArr[1] = self.cubeArr[4], self.startArr[4]
+            self.cubeArr[4], self.startArr[4] = self.cubeArr[3], self.startArr[3]
+            self.cubeArr[3], self.startArr[3] = self.cubeArr[2], self.startArr[2]
+            self.cubeArr[2], self.startArr[2] = temp, tempStart
 
         self.faceArr[0].rotateFace(self.cubeArr, clockwise)
         self.faceArr[5].rotateFace(self.cubeArr, not clockwise)
@@ -161,18 +158,19 @@ class cube:
     def turnCubeY(self, clockwise = True):
         
         temp = self.cubeArr[0]
+        tempStart = self.startArr[0]
 
         if clockwise == True:
-            self.cubeArr[0] = self.cubeArr[2]
-            self.cubeArr[2] = self.cubeArr[5]
-            self.cubeArr[5] = self.cubeArr[4]
-            self.cubeArr[4] = temp
+            self.cubeArr[0], self.startArr[0] = self.cubeArr[2], self.startArr[2]
+            self.cubeArr[2], self.startArr[2] = self.cubeArr[5], self.startArr[5]
+            self.cubeArr[5], self.startArr[5] = self.cubeArr[4], self.startArr[4]
+            self.cubeArr[4], self.startArr[4] = temp, tempStart
 
         else:
-            self.cubeArr[0] = self.cubeArr[4]
-            self.cubeArr[4] = self.cubeArr[5]
-            self.cubeArr[5] = self.cubeArr[2]
-            self.cubeArr[2] = temp
+            self.cubeArr[0], self.startArr[0] = self.cubeArr[4], self.startArr[4]
+            self.cubeArr[4], self.startArr[4] = self.cubeArr[5], self.startArr[5]
+            self.cubeArr[5], self.startArr[5] = self.cubeArr[2], self.startArr[2]
+            self.cubeArr[2], self.startArr[2] = temp, tempStart
 
         self.faceArr[1].rotateFace(self.cubeArr, not clockwise)
         self.faceArr[3].rotateFace(self.cubeArr, clockwise)
@@ -181,6 +179,7 @@ class cube:
         self.faceArr[5].rotateFace(self.cubeArr)
         self.faceArr[5].rotateFace(self.cubeArr)
 
+    
     def singleMove(self,s):
         if s not in rotMap:
             print("INVALID")
@@ -188,9 +187,11 @@ class cube:
         targetFace, clockwise = rotMap[s]
         self.faceArr[targetFace].rotate(self.cubeArr, clockwise)
 
+    
     def multipleMoves(self,s):
         for letter in s:
             self.singleMove(letter)
+    
     
     def scramble(self, numMoves):
         for move in range(numMoves):
@@ -198,22 +199,86 @@ class cube:
             self.singleMove(key)
 
 
+    ###################################    SOLVE   ####################################################
+
+    # TODO
+    # need to figure out node class for pathfinding
+    # thinking lookup tables for each type of rotation, problem is the lookup tables could also be used for the regular rotation mechanism
+    # Seems like hard-coding, not an elegant solution
+    # maybe research other ways to rotate mathematically 
+
+
+
+    # instead of string, make every cell a facelet
+    # every facelet should be attached to a cubelet parent
+    # iterate through every piece and check if it moves
+    # if it moves find current piece from graph
+    # find new piece location from graph
+    # add edge to piece
+
+
+    # find piece
+
+    def findPiece(self, target, currCube):
+
+        targetPiece = self.pieceList[target]
+        
+        for idx in range(len(self.pieceList)):
+            if self.pieceList[idx].locate(targetPiece,currCube,self.startArr):
+                return idx
+        return None
+
+
+    
+
+
+    # Assign an object to every facelet and a parent
+    # The parent will be used to tell facelets apart
+    # After a rotation, the facelets at each cell move
+    # but each facelet still points to the same parent pieces
+
+    # Find facelet index in scrambled cube
+    # Rotate (facelets will move)
+    # check 
+
+    # Make rotation follow the facelets
+    # Initialize Graph
+    # Check if
+    
+
+class state:
+    def __init__(self) -> None:
+        self.parent = None
+        self.changeList = []
+        
+class change:
+    def __init__(self) -> None:
+        self.parent = None
+        self.change = ""
+        self.targetPiece = None
 
 newCube = cube()
-newCube.printCube()
 newCube.scramble(20)
-newCube.printCube()
+newCube.printCube(newCube.cubeArr)
+newCube.printCube(newCube.startArr)
 
 
-'''
-run = True
+print(newCube.findPiece(2, newCube.cubeArr))
+
+
+#newCube.scramble(20)
+#newCube.printCube()
+
+
+
+'''run = True
 while run:
     print(newCube.cubeArr[0])
     #print(newCube.faceArr[0].currFace)
     print(newCube.faceArr[0].index)
     #print(newCube.faceArr[3].neighbors)
     val = input("input: ")
-    if val == "end":
+    if val == "END":
         run = False
     elif val == "X":
         newCube.turnCubeX()
@@ -254,11 +319,19 @@ while run:
     elif val == "DP":
         newCube.faceArr[5].rotate(newCube.cubeArr, False)
 
-    
-    elif val == "Reset":
+    elif val == "SCRAMBLE":
+        newCube.scramble(20)
+    elif val == "RESET":
         newCube.resetCube()
+    elif val == "TEST":
+        if newCube.edgeList[0].isSame(newCube.cubeArr,newCube.startArr):
+            print("They are the same")
+        else:
+            print("These are different")
 
     else:
         print("invalid")
-    newCube.printCube()
+    newCube.printCube(newCube.cubeArr)
+    newCube.printCube(newCube.startArr)
+
 '''

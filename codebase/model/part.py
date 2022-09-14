@@ -3,13 +3,25 @@ class part:
         self.facets = []
         return None
 
+    #def checkSame(self, cubeCurr, cubeEnd):
+    #    for facet in self.facets
 
-    def isSame(self, cubeCurr, cubeEnd) -> bool:
-        for face in self.facets:
-            if cubeCurr[face[0]][face[1]][face[2]] != \
-                cubeEnd[face[0]][face[1]][face[2]]:
-                return False
-        return True
+
+    def locate(self, otherPiece, cubeCurr, cubeEnd):
+        if len(self.facets)!= len(otherPiece.facets):
+            return False
+        
+        colorsCurr = []
+        colorsEnd = []
+        for idx in range(len(self.facets)):
+            facet1 = self.facets[idx]
+            facet2 = otherPiece.facets[idx]
+
+            colorsCurr.append(cubeCurr[facet1[0]][facet1[1]][facet1[2]])
+            colorsEnd.append(cubeEnd[facet2[0]][facet2[1]][facet2[2]])
+
+        return sorted(colorsCurr) == sorted(colorsEnd)
+        
         
 
 class edge(part):

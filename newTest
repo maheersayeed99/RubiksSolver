@@ -1,0 +1,59 @@
+
+def canSum(target, listNums):
+
+    dp = [False]* (target+1)
+    dp[0] = True
+
+    for idx in range(target+1):
+        if dp[idx] == True:
+            for num in listNums:
+                newIdx = idx+num
+                if newIdx == target:
+                    return True
+                elif newIdx<target:
+                    dp[newIdx] = True
+    
+    return False
+
+print(canSum(7,[2,4,1,6]))
+
+
+def howSum(target, listNums):
+
+    dp = [None]*(target+1)
+    dp[0] = []
+
+    for idx in range(target+1):
+        if dp[idx] != None:
+            for num in listNums:
+                newIdx = idx+num
+                if newIdx == target:
+                    return dp[idx] + [num]
+                elif newIdx<target:
+                    dp[newIdx] = dp[idx]+ [num]
+    
+    return []
+
+    
+print(howSum(7,[3,5,1,4]))
+
+
+def bestSum(target, listNums):
+
+    dp = [None]*(target+1)
+    dp[0] = []
+
+    for idx in range(target+1):
+        if dp[idx] != None:
+            for num in listNums:
+                newIdx = idx+num
+                if newIdx<=target and dp[newIdx] == None:
+                    dp[newIdx] = dp[idx]+[num]
+                elif newIdx<=target:
+                    dp[newIdx] = dp[idx]+[num] if len(dp[newIdx])<len(dp[idx])+1 else dp[newIdx] 
+
+    print(dp)
+    return dp[-1]
+
+    
+print(bestSum(7,[1,4,3]))
