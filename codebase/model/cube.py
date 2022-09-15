@@ -13,7 +13,7 @@ colorMap = {                        # This map is used to initialize face colors
         }
 
 rotMap = {                          # This map is used to find out which face to rotate for the corresponding move
-        "U": (0,True),
+        "U": (0,True),  
         "I": (0,False),
         "L": (1,True),
         "K": (1,False),
@@ -42,6 +42,23 @@ revMap = {                          # This map is used to reverse moves. When a 
         "S": "D"
         }
 
+standardMoves = ["U","I","L","K","F","G","R","E","B","V","D","S","UU","LL","RR","DD","BB","FF"]
+
+firstEdgeMoves = ["U","I","L","K","F","G","R","E","B","V","D","S"]
+secondEdgeMoves = ["L","K","F","G","R","E","D","S","LL","FF","RR","DD"]
+thirdEdgeMoves = ["L","K","F","G","D","S"]
+fourthEdgeMoves = ["L","K","D","S"]
+
+whiteCrossMoves = ["RDE","RSE", "EDR","ESR", "LDK","LSK",  "KDL","KSL", "FDG","FSG",  "GDF","GSF",  "BDV","BSV", "VDB","VSB"]
+
+whiteCornerMoves = ["ESRD","FDGS","EDDRDESR"]
+
+secondLayerMoves = ["LDKSGSF","ESRDFDG"]
+
+yellowCrossMoves = []
+
+
+
 
 class facet:                                                                # Every cell of the cube is called a facet, regardless of type of piece
     def __init__(self, color) -> None:                                      # Main cube structure is occupied by these facect objects
@@ -53,17 +70,22 @@ class facet:                                                                # Ev
     def isSame(self, other):
         return self.color == other.color and self.faces == other.faces      # Two facets of different cubes can represent the same piece if the face color and faces list are the same
 
+    def isSameColor(self,other):
+        return self.color == other.color
+
 
 class node:                                             # Nodes are used when the graph is generated for pathfinding
     def __init__(self,pos) -> None:                     # Node graph is strored in self.solveGraph map
         self.pos = pos
         self.changeList = dict()                        # change list maps every move to the node at the resulting location
+        self.parent = None
+        self.parentMove = ""
         
 
 class change:                                           
     def __init__(self, move, targetNode) -> None:       # every node has a list of changes based on the moves stored in the graph
-        self.parent = None                              # previous edge
-        self.move = move                                # The move itself will be used for backtracking purposes
+        #self.parent = None                              # previous edge
+        #self.move = move                                # The move itself will be used for backtracking purposes
         self.targetNode = targetNode                    # node at new location resulting from the move
 
 
@@ -79,8 +101,11 @@ class cube:
         #self.pieceList = []
         #self.populatePieces()
 
+
+        
         self.history = []                                               # Used for reversing moves
         self.solveGraph = dict()                                        # Graph used for backtracking
+        self.initializeGraph()
         return None
 
     '''def populatePieces(self):
@@ -235,10 +260,10 @@ class cube:
             self.singleMove(move)
     
     
-    def scramble(self, numMoves):                                   # Scrambles the cube by randomly performing a set number of moves
+    def scramble(self, numMoves,cube):                                   # Scrambles the cube by randomly performing a set number of moves
         for move in range(numMoves):
             key, val = random.choice(list(rotMap.items()))
-            self.singleMove(key)
+            self.singleMove(key,cube)
 
 
     ###################################    SOLVE   ####################################################
@@ -277,15 +302,16 @@ class cube:
                 for col in range(3):
                     if cube1[pos[0]][pos[1]][pos[2]].isSame(cube2[currFace][row][col]):
                         return (currFace, row, col)
-
-
-    def generateGraph(self, moves):                                                     # Makes graph mapping index changes from a group of moves
-        self.solveGraph = dict()                                                        # clear map
+    
+    def initializeGraph(self):
 
         for currFace in range(6):
             for row in range(3):
                 for col in range(3):
                     self.solveGraph[(currFace,row,col)] = node((currFace,row,col))      # initialize map
+
+
+    def generateGraph(self, moves):                                                     # Makes graph mapping index changes from a group of moves
 
         tempCube = copy.deepcopy(self.cubeArr)                                          # make temporaty cube
 
@@ -310,7 +336,64 @@ class cube:
 
         del tempCube            # free memory
 
+
+    def addAlgorithms(self):
+        for move in standardMoves:
+            self.generateGraph(move)
+        for move in whiteCrossMoves:
+            self.generateGraph(move)
+        for move in whiteCornerMoves:
+            self.generateGraph(move)
+        for move in secondLayerMoves:
+            self.generateGraph(move)
+    
+
+    def bfs(self, targetPos, moves):
+
+        newQ = []
+        visited = []
+        front = None
+
+        currPos = self.findPiece(targetPos,self.startArr,self.cubeArr)
+        print(currPos)
+        print(len(self.solveGraph[currPos].changeList))
+        for key in self.solveGraph[currPos].changeList:
+            print(key)
+
+        newQ.append(self.solveGraph[currPos])
+
+        while newQ:
+            front = newQ[0]
+
+            if front.pos == targetPos:
+                break
+
+            front = newQ.pop(0)
+
+            visited.append(front)
+
+            for move in moves:
+                if move in front.changeList:
+                    nextNode  = front.changeList[move].targetNode
+                    if nextNode not in visited:
+                        newQ.append(nextNode)
+                        nextNode.parent = front
+                        nextNode.parentMove = move
         
+        if len(newQ)==0:
+            return "NOT FOUND"
+
+        backtrack = ""
+
+        while front.pos != currPos:
+            backtrack += front.parentMove
+            front = front.parent 
+        
+        return backtrack[::-1]
+
+
+
+
 
 
 
@@ -339,12 +422,42 @@ class cube:
 
 
 newCube = cube()
-newCube.generateGraph(["F","R","B","L","U","D","G","E","V","K","I","S"])
+newCube.generateGraph(standardMoves+whiteCrossMoves)
 
+#for key in newCube.solveGraph:
+#    print(key, " ", len(newCube.solveGraph[key].changeList))
 
+for move in newCube.solveGraph[(0,0,0)].changeList:
+    print(move)
+
+#for node in newCube.solveGraph:
+#print(len(node.changeList))
+#newCube.generateGraph("F")
+#newCube.generateGraph("R")
+
+#newCube.printCube(newCube.cubeArr)
+newCube.scramble(20,newCube.cubeArr)
 newCube.printCube(newCube.cubeArr)
 
-newCube.singleMove("RUE", newCube.cubeArr)
+
+testMoves = newCube.bfs((0,0,1),firstEdgeMoves)
+newCube.singleMove(testMoves,newCube.cubeArr)
+
+testMoves = newCube.bfs((0,1,2),secondEdgeMoves+whiteCrossMoves)
+newCube.singleMove(testMoves,newCube.cubeArr)
+
+#testMoves = newCube.bfs((0,2,1),thirdEdgeMoves+whiteCrossMoves)
+#newCube.singleMove(testMoves,newCube.cubeArr)
+
+#testMoves = newCube.bfs((0,1,0),fourthEdgeMoves+whiteCrossMoves)
+#newCube.singleMove(testMoves,newCube.cubeArr)
+
+
+
+
+print(testMoves)
+newCube.printCube(newCube.cubeArr)
+'''newCube.singleMove("RUE", newCube.cubeArr)
 print("\n")
 
 newCube.printCube(newCube.cubeArr)
@@ -358,7 +471,7 @@ newCube.resetCube()
 
 for key in newCube.solveGraph:
     print(key, " ", len(newCube.solveGraph[key].changeList))
-
+'''
 
 #newCube.faceArr[0].rotate(newCube.cubeArr)
 
