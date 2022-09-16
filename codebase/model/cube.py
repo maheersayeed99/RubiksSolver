@@ -1,3 +1,4 @@
+import re
 from face import *
 from part import *
 import random
@@ -14,46 +15,58 @@ colorMap = {                        # This map is used to initialize face colors
 
 rotMap = {                          # This map is used to find out which face to rotate for the corresponding move
         "U": (0,True),  
-        "I": (0,False),
+        "u": (0,False),
         "L": (1,True),
-        "K": (1,False),
+        "l": (1,False),
         "F": (2,True),
-        "G": (2,False),
+        "f": (2,False),
         "R": (3,True),
-        "E": (3,False),
+        "r": (3,False),
         "B": (4,True),
-        "V": (4,False),
+        "b": (4,False),
         "D": (5,True),
-        "S": (5,False)
+        "d": (5,False)
         }
 
 revMap = {                          # This map is used to reverse moves. When a move is made, the reverse move is appended to the self.history stack
-        "U": "I",
-        "I": "U",
-        "L": "K",
-        "K": "L",
-        "F": "G",
-        "G": "F",
-        "R": "E",
-        "E": "R",
-        "B": "V",
-        "V": "B",
-        "D": "S",
-        "S": "D"
+        "U": "u",
+        "u": "U",
+        "L": "l",
+        "l": "L",
+        "F": "f",
+        "f": "F",
+        "R": "r",
+        "r": "R",
+        "B": "b",
+        "b": "B",
+        "D": "d",
+        "d": "D"
         }
 
-standardMoves = ["U","I","L","K","F","G","R","E","B","V","D","S","UU","LL","RR","DD","BB","FF"]
+standardMoves = ["U","u","L","l","F","f","R","r","B","b","D","d","UU","LL","RR","DD","BB","FF"]
 
-firstEdgeMoves = ["U","I","L","K","F","G","R","E","B","V","D","S"]
-secondEdgeMoves = ["L","K","F","G","R","E","D","S","LL","FF","RR","DD"]
-thirdEdgeMoves = ["L","K","F","G","D","S"]
-fourthEdgeMoves = ["L","K","D","S"]
+whiteCrossMoves = ["RDr","Rdr", "rDR","rdR", "LDl","Ldl",  "lDL","ldL", "FDf","Fdf",  "fDF","fdF",  "BDb","Bdb", "bDB","bdB"]
 
-whiteCrossMoves = ["RDE","RSE", "EDR","ESR", "LDK","LSK",  "KDL","KSL", "FDG","FSG",  "GDF","GSF",  "BDV","BSV", "VDB","VSB"]
+firstEdgeMoves = ["U","u","L","l","F","f","R","r","B","b","D","d","UU","LL","FF","RR","BB","DD"]
+secondEdgeMoves = ["L","l","F","f","R","r","D","d","LL","FF","RR","DD"]
+thirdEdgeMoves = ["L","l","F","f","D","d","LL","FF","DD"]
+fourthEdgeMoves = ["L","l","D","d","LL","DD"]
 
-whiteCornerMoves = ["ESRD","FDGS","EDDRDESR"]
+whiteCornerMoves = ["D","d","DD"]
 
-secondLayerMoves = ["LDKSGSF","ESRDFDG"]
+firstCornerMoves = ["rdRD","fdFD","ldLD","bdBD","FDfd","RDrd","BDbd","LDld","rDDRDrdR","fDDFDfdF","lDDLDldL","bDDBDbdB"]
+secondCornerMoves = ["fdFD","ldLD","bdBD","RDrd","BDbd","LDld","fDDFDfdF","lDDLDldL","bDDBDbdB"]
+thirdCornerMoves = ["fdFD","ldLD","BDbd","LDld","fDDFDfdF","lDDLDldL"]
+fourthCornerMoves = ["fdFD","LDld","fDDFDfdF"]
+
+
+firstMiddleMoves = []
+secondMiddleMoves = []
+thirdMiddleMoves = []
+fourthMiddleMoves = []
+
+
+#secondLayerMoves = ["LDKSGSF","ESRDFDG"]
 
 yellowCrossMoves = []
 
@@ -80,14 +93,15 @@ class node:                                             # Nodes are used when th
         self.changeList = dict()                        # change list maps every move to the node at the resulting location
         self.parent = None
         self.parentMove = ""
+        self.score = 0
         
 
-class change:                                           
+'''class change:                                           
     def __init__(self, move, targetNode) -> None:       # every node has a list of changes based on the moves stored in the graph
         #self.parent = None                              # previous edge
         #self.move = move                                # The move itself will be used for backtracking purposes
         self.targetNode = targetNode                    # node at new location resulting from the move
-
+'''
 
 class cube:
     def __init__(self) -> None:
@@ -104,8 +118,11 @@ class cube:
 
         
         self.history = []                                               # Used for reversing moves
+        self.solution = []
         self.solveGraph = dict()                                        # Graph used for backtracking
         self.initializeGraph()
+
+        self.addAlgorithms()
         return None
 
     '''def populatePieces(self):
@@ -155,6 +172,8 @@ class cube:
     
     def printCube(self,cube):
 
+        print("\n")
+
         for i in range(len(cube[0])):
             print("     ",cube[0][i][0].color,cube[0][i][1].color,cube[0][i][2].color)
 
@@ -168,6 +187,7 @@ class cube:
         for i in range(len(cube[5])):
             print("     ",cube[5][i][0].color,cube[5][i][1].color,cube[5][i][2].color)
 
+        print("\n")
 
 
     def turnCubeX(self, clockwise = True):                                                  # Turn Whole Cube around X axis
@@ -255,9 +275,9 @@ class cube:
             self.singleMove(self.history.pop(),cube, True)          # Reversing moves uses the history stack initialized earlier
 
     
-    def multipleMoves(self,moves):                                  # Performs multiple moves from an array
+    def multipleMoves(self,moves,cube):                                  # Performs multiple moves from an array
         for move in moves:
-            self.singleMove(move)
+            self.singleMove(move,cube)
     
     
     def scramble(self, numMoves,cube):                                   # Scrambles the cube by randomly performing a set number of moves
@@ -328,8 +348,8 @@ class cube:
                             newPos = self.findPiece((currFace,row,col), self.cubeArr, tempCube)                 # if not get the two nodes from the graph
                             currentNode = self.solveGraph[(currFace,row,col)]
                             targetNode = self.solveGraph[newPos]
-                            newChange = change(move, targetNode)                                                # make a change object in the first node whose target is the second node
-                            currentNode.changeList[move] = newChange                                            # add change object to the first nodes change map
+                            #newChange = change(move, targetNode)                                                # make a change object in the first node whose target is the second node
+                            currentNode.changeList[move] = targetNode                                            # add change object to the first nodes change map
 
 
             self.reverseMove(move,tempCube)                                             # reverse the current move
@@ -338,15 +358,10 @@ class cube:
 
 
     def addAlgorithms(self):
-        for move in standardMoves:
-            self.generateGraph(move)
-        for move in whiteCrossMoves:
-            self.generateGraph(move)
-        for move in whiteCornerMoves:
-            self.generateGraph(move)
-        for move in secondLayerMoves:
-            self.generateGraph(move)
-    
+        self.generateGraph(firstEdgeMoves)
+        self.generateGraph(whiteCrossMoves)
+        self.generateGraph(firstCornerMoves)
+        self.generateGraph(firstMiddleMoves)
 
     def bfs(self, targetPos, moves):
 
@@ -355,14 +370,14 @@ class cube:
         front = None
 
         currPos = self.findPiece(targetPos,self.startArr,self.cubeArr)
-        print(currPos)
-        print(len(self.solveGraph[currPos].changeList))
-        for key in self.solveGraph[currPos].changeList:
-            print(key)
+        #print(currPos)
+        #print(len(self.solveGraph[currPos].changeList))
+        #for key in self.solveGraph[currPos].changeList:
+        #    print(key)
 
         newQ.append(self.solveGraph[currPos])
 
-        while newQ:
+        while len(newQ)>0:
             front = newQ[0]
 
             if front.pos == targetPos:
@@ -374,22 +389,86 @@ class cube:
 
             for move in moves:
                 if move in front.changeList:
-                    nextNode  = front.changeList[move].targetNode
+                    nextNode  = front.changeList[move]#.targetNode
                     if nextNode not in visited:
                         newQ.append(nextNode)
                         nextNode.parent = front
                         nextNode.parentMove = move
+                        nextNode.score = len(move)
         
+
         if len(newQ)==0:
             return "NOT FOUND"
 
-        backtrack = ""
+        backtrack = []
+        solutionLength = 0
 
-        while front.pos != currPos:
-            backtrack += front.parentMove
+        while front.pos != currPos and front.pos!= None:
+            backtrack.append(front.parentMove)
             front = front.parent 
+            solutionLength+=front.score
         
+        print("score: ", solutionLength)
         return backtrack[::-1]
+
+
+    def solveCube(self):
+        self.solveWhiteCross()
+        self.solveWhiteCorners()
+        self.solveMiddleLayer()
+        self.solveYellowCross()
+        self.solveYellowFace()
+        self.solveYellowCorners()
+        self.solveYellowEdges()
+
+    
+    def solveWhiteCross(self):
+
+        testMoves = self.bfs((0,0,1),firstEdgeMoves)
+        self.multipleMoves(testMoves,self.cubeArr)
+        self.solution+=testMoves
+
+        testMoves = self.bfs((0,1,2),secondEdgeMoves+whiteCrossMoves)
+        self.multipleMoves(testMoves,self.cubeArr)
+        self.solution+=testMoves
+
+        testMoves = self.bfs((0,2,1),thirdEdgeMoves+whiteCrossMoves)
+        self.multipleMoves(testMoves,self.cubeArr)
+        self.solution+=testMoves
+
+        testMoves = self.bfs((0,1,0),fourthEdgeMoves+whiteCrossMoves)
+        self.multipleMoves(testMoves,self.cubeArr)
+        self.solution+=testMoves
+
+
+    def solveWhiteCorners(self):
+        testMoves = self.bfs((0,2,2),whiteCornerMoves+firstCornerMoves)
+        self.multipleMoves(testMoves,self.cubeArr)
+        self.solution+=testMoves
+
+        testMoves = self.bfs((0,0,2),whiteCornerMoves+secondCornerMoves)
+        self.multipleMoves(testMoves,self.cubeArr)
+        self.solution+=testMoves
+
+        testMoves = self.bfs((0,0,0),whiteCornerMoves+thirdCornerMoves)
+        self.multipleMoves(testMoves,self.cubeArr)
+        self.solution+=testMoves
+
+        testMoves = self.bfs((0,2,0),whiteCornerMoves+fourthCornerMoves)
+        self.multipleMoves(testMoves,self.cubeArr)
+        self.solution+=testMoves
+
+    def solveMiddleLayer(self):
+        return
+    def solveYellowCross(self):
+        return
+    def solveYellowFace(self):
+        return
+    def solveYellowCorners(self):
+        return
+    def solveYellowEdges(self):
+        return
+
 
 
 
@@ -422,13 +501,9 @@ class cube:
 
 
 newCube = cube()
-newCube.generateGraph(standardMoves+whiteCrossMoves)
 
 #for key in newCube.solveGraph:
 #    print(key, " ", len(newCube.solveGraph[key].changeList))
-
-for move in newCube.solveGraph[(0,0,0)].changeList:
-    print(move)
 
 #for node in newCube.solveGraph:
 #print(len(node.changeList))
@@ -439,24 +514,17 @@ for move in newCube.solveGraph[(0,0,0)].changeList:
 newCube.scramble(20,newCube.cubeArr)
 newCube.printCube(newCube.cubeArr)
 
+newCube.solveCube()
 
-testMoves = newCube.bfs((0,0,1),firstEdgeMoves)
-newCube.singleMove(testMoves,newCube.cubeArr)
-
-testMoves = newCube.bfs((0,1,2),secondEdgeMoves+whiteCrossMoves)
-newCube.singleMove(testMoves,newCube.cubeArr)
-
-#testMoves = newCube.bfs((0,2,1),thirdEdgeMoves+whiteCrossMoves)
-#newCube.singleMove(testMoves,newCube.cubeArr)
-
-#testMoves = newCube.bfs((0,1,0),fourthEdgeMoves+whiteCrossMoves)
-#newCube.singleMove(testMoves,newCube.cubeArr)
-
-
-
-
-print(testMoves)
+print(newCube.solution)
 newCube.printCube(newCube.cubeArr)
+
+'''newCube.printCube(newCube.cubeArr)
+newCube.singleMove("RUE",newCube.cubeArr)
+newCube.printCube(newCube.cubeArr)
+newCube.reverseMove("RUE",newCube.cubeArr)
+newCube.printCube(newCube.cubeArr)
+'''
 '''newCube.singleMove("RUE", newCube.cubeArr)
 print("\n")
 
