@@ -43,27 +43,26 @@ revMap = {                          # This map is used to reverse moves. When a 
         "d": "D"
         }
 
-standardMoves = ["U","u","L","l","F","f","R","r","B","b","D","d","UU","LL","RR","DD","BB","FF"]
-
 whiteCrossMoves = ["RDr","Rdr", "rDR","rdR", "LDl","Ldl",  "lDL","ldL", "FDf","Fdf",  "fDF","fdF",  "BDb","Bdb", "bDB","bdB"]
 
-firstEdgeMoves = ["U","u","L","l","F","f","R","r","B","b","D","d","UU","LL","FF","RR","BB","DD"]
-secondEdgeMoves = ["L","l","F","f","R","r","D","d","LL","FF","RR","DD"]
-thirdEdgeMoves = ["L","l","F","f","D","d","LL","FF","DD"]
-fourthEdgeMoves = ["L","l","D","d","LL","DD"]
+firstEdgeMoves = ["U","u","L","l","F","f","R","r","B","b","D","d"]#,"UU","LL","FF","RR","BB","DD"]
+secondEdgeMoves = ["L","l","F","f","R","r","D","d"]#,"LL","FF","RR","DD"]
+thirdEdgeMoves = ["L","l","F","f","D","d"]#,"LL","FF","DD"]
+fourthEdgeMoves = ["L","l","D","d"]#,"LL","DD"]
 
-whiteCornerMoves = ["D","d","DD"]
+whiteCornerMoves = ["D","d"]#,"DD"]
 
 firstCornerMoves = ["rdRD","fdFD","ldLD","bdBD","FDfd","RDrd","BDbd","LDld","rDDRDrdR","fDDFDfdF","lDDLDldL","bDDBDbdB"]
 secondCornerMoves = ["fdFD","ldLD","bdBD","RDrd","BDbd","LDld","fDDFDfdF","lDDLDldL","bDDBDbdB"]
 thirdCornerMoves = ["fdFD","ldLD","BDbd","LDld","fDDFDfdF","lDDLDldL"]
 fourthCornerMoves = ["fdFD","LDld","fDDFDfdF"]
 
+middleLayerMoves = ["D","d"]
 
-firstMiddleMoves = []
-secondMiddleMoves = []
-thirdMiddleMoves = []
-fourthMiddleMoves = []
+firstMiddleMoves = ["rdRDFDf", "bdBDRDr", "ldLDBDb", "fdFDLDl", "LDldfdF", "BDbdldL", "RDrdbdB", "FDfdrdR"]
+secondMiddleMoves = ["bdBDRDr", "ldLDBDb", "fdFDLDl", "LDldfdF", "BDbdldL", "RDrdbdB"]
+thirdMiddleMoves = ["ldLDBDb", "fdFDLDl", "LDldfdF", "BDbdldL"]
+fourthMiddleMoves = ["fdFDLDl", "LDldfdF"]
 
 
 #secondLayerMoves = ["LDKSGSF","ESRDFDG"]
@@ -119,6 +118,7 @@ class cube:
         
         self.history = []                                               # Used for reversing moves
         self.solution = []
+        self.solutionLength = 0
         self.solveGraph = dict()                                        # Graph used for backtracking
         self.initializeGraph()
 
@@ -401,14 +401,12 @@ class cube:
             return "NOT FOUND"
 
         backtrack = []
-        solutionLength = 0
 
         while front.pos != currPos and front.pos!= None:
             backtrack.append(front.parentMove)
             front = front.parent 
-            solutionLength+=front.score
+            self.solutionLength +=front.score
         
-        print("score: ", solutionLength)
         return backtrack[::-1]
 
 
@@ -459,7 +457,28 @@ class cube:
         self.solution+=testMoves
 
     def solveMiddleLayer(self):
+
+        testMoves = self.bfs((2,1,2),middleLayerMoves+firstMiddleMoves)
+        self.multipleMoves(testMoves,self.cubeArr)
+        self.solution+=testMoves
+
+        testMoves = self.bfs((3,1,2),middleLayerMoves+secondMiddleMoves)
+        self.multipleMoves(testMoves,self.cubeArr)
+        self.solution+=testMoves
+
+        testMoves = self.bfs((4,1,2),middleLayerMoves+thirdMiddleMoves)
+        self.multipleMoves(testMoves,self.cubeArr)
+        self.solution+=testMoves
+
+        testMoves = self.bfs((1,1,2),middleLayerMoves+fourthMiddleMoves)
+        self.multipleMoves(testMoves,self.cubeArr)
+        self.solution+=testMoves
+        
         return
+    
+    
+    
+    
     def solveYellowCross(self):
         return
     def solveYellowFace(self):
@@ -517,6 +536,7 @@ newCube.printCube(newCube.cubeArr)
 newCube.solveCube()
 
 print(newCube.solution)
+print(newCube.solutionLength)
 newCube.printCube(newCube.cubeArr)
 
 '''newCube.printCube(newCube.cubeArr)
