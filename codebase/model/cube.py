@@ -67,7 +67,7 @@ fourthMiddleMoves = ["fdFDLDl", "LDldfdF"]
 
 #secondLayerMoves = ["LDKSGSF","ESRDFDG"]
 
-yellowCrossMoves = []
+yellowCrossMoves = ["FDLdlf","FLDldf","D","d"]
 
 
 
@@ -362,6 +362,7 @@ class cube:
         self.generateGraph(whiteCrossMoves)
         self.generateGraph(firstCornerMoves)
         self.generateGraph(firstMiddleMoves)
+        self.generateGraph(yellowCrossMoves)
 
     def bfs(self, targetPos, moves):
 
@@ -477,10 +478,31 @@ class cube:
         return
     
     
-    
-    
     def solveYellowCross(self):
-        return
+
+        testMoves = self.bfs((5,0,1),yellowCrossMoves)
+        self.multipleMoves(testMoves,self.cubeArr)
+        self.solution+=testMoves
+
+        if (self.cubeArr[5][1][0].isSameColor(self.startArr[5][0][2]) == True and \
+            self.cubeArr[5][1][2].isSameColor(self.startArr[5][1][2]) == True):
+            return
+        
+        elif self.cubeArr[5][1][2].isSameColor(self.startArr[5][0][2]) == True:
+            testMoves = ["LDBdbl"]
+            self.multipleMoves(testMoves,self.cubeArr)
+            self.solution+=testMoves
+
+        elif self.cubeArr[5][1][0].isSameColor(self.startArr[5][0][2]) == True:
+            testMoves = ["BDRdrb"]
+            self.multipleMoves(testMoves,self.cubeArr)
+            self.solution+=testMoves
+
+        else: #if self.cubeArr[5][0][2].isSameColor(self.startArr[5][0][2]) == True:
+            testMoves = ["LBDbdl"]
+            self.multipleMoves(testMoves,self.cubeArr)
+            self.solution+=testMoves
+
     def solveYellowFace(self):
         return
     def solveYellowCorners(self):
