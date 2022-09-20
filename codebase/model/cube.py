@@ -88,6 +88,9 @@ yellowCrossStandard = ["FDLdlf","FLDldf"]
 yellowCrossAdditional = ["D","d"]
 yellowFaceStandard = ["LDlDLDDl"]
 yellowFaceAdditional = ["D","d"]
+yellowCornersStandard = ["lFlBBLflBBLL"]
+yellowCornersAdditional = ["D","d"]
+yellowEdgesStandard = ["RRdBfRRbFdRR"]
 
 
 
@@ -397,6 +400,8 @@ class cube:
         self.generateGraph(middleLayerStandard + self.changeFront(["Z","ZZ","z"],middleLayerStandard))
         self.generateGraph(yellowCrossStandard + self.changeFront(["Z","ZZ","z"],yellowCrossStandard))
         self.generateGraph(yellowFaceStandard + self.changeFront(["Z","ZZ","z"],yellowFaceStandard))
+        self.generateGraph(yellowCornersStandard + self.changeFront(["Z","ZZ","z"],yellowCornersStandard))
+        self.generateGraph(yellowEdgesStandard + self.changeFront(["Z","ZZ","z"],yellowEdgesStandard))
 
     def bfs(self, targetPos, moves):
 
@@ -437,6 +442,87 @@ class cube:
             backtrack.append(front.parentMove)
             front = front.parent 
             self.solutionLength +=front.score
+        
+        return backtrack[::-1]
+
+
+    
+
+    def bfsFinalLayer(self, targetPos, moves):
+
+        Q1 = []
+        Q2 = []
+        Q3 = []
+
+        visited1 = []
+        visited2 = []
+        visited3 = []
+
+        front1 = None
+        front2 = None
+        front3 = None
+
+        currPos1 = self.findPiece(targetPos[0],self.startArr,self.cubeArr)
+        currPos2 = self.findPiece(targetPos[1],self.startArr,self.cubeArr)
+        currPos3 = self.findPiece(targetPos[2],self.startArr,self.cubeArr)
+        
+        Q1.append(self.solveGraph[currPos1])
+        Q2.append(self.solveGraph[currPos2])
+        Q3.append(self.solveGraph[currPos3])
+
+        while len(Q1)>0 and len(Q2)>0 and len(Q3)>0:
+            front1 = Q1[0]
+            front2 = Q2[0]
+            front3 = Q3[0]
+
+            if front1.pos == targetPos[0] and front2.pos == targetPos[1] and front3.pos == targetPos[2]:
+                print("FOUND!!")
+                break
+
+
+            front1 = Q1.pop(0)
+            front2 = Q2.pop(0)
+            front3 = Q3.pop(0)
+
+            visited1.append(front1)
+            visited2.append(front2)
+            visited3.append(front3)
+
+            for move in moves:
+                if move in front1.changeList: # and move in front2.changeList and move in front3.changeList:
+                    nextNode1  = front1.changeList[move]#.targetNode
+                else:
+                    visited1.pop()
+                    nextNode1 = front1
+                if move in front2.changeList:
+                    nextNode2  = front2.changeList[move]
+                else:
+                    visited2.pop()
+                    nextNode2 = front2
+                if move in front3.changeList:
+                    nextNode3  = front3.changeList[move]
+                else:
+                    visited3.pop()
+                    nextNode3 = front3
+                if nextNode1 not in visited1 and nextNode2 not in visited2 and nextNode3 not in visited3:
+                    Q1.append(nextNode1)
+                    Q2.append(nextNode2)
+                    Q3.append(nextNode3)
+                        
+                    nextNode1.parent = front1
+                    nextNode1.parentMove = move
+                    nextNode1.score = len(move)
+        
+
+        '''if len(Q1)==0:
+            return "NOT FOUND"'''
+
+        backtrack = []
+
+        while front1.pos != currPos1 and front1.pos!= None:
+            backtrack.append(front1.parentMove)
+            front1 = front1.parent 
+            self.solutionLength +=front1.score
         
         return backtrack[::-1]
 
@@ -677,8 +763,41 @@ class cube:
             
             
     def solveYellowCorners(self):
+
+        testMoves = self.bfs((5,0,2), yellowCornersStandard + self.changeFront(["Z","ZZ","z"],yellowCornersStandard) + yellowCornersAdditional)
+        self.multipleMoves(testMoves,self.cubeArr)
+        self.solution+=testMoves
+
+        testMoves = self.bfs((5,0,0), yellowCornersStandard)
+        self.multipleMoves(testMoves,self.cubeArr)
+        self.solution+=testMoves
+
+        if (self.cubeArr[5][2][0].isSame(self.startArr[5][2][0]) == True and \
+            self.cubeArr[5][2][2].isSame(self.startArr[5][2][2]) == True):
+            return
+
+        testMoves = self.changeFront(["ZZ"],["lFlBBLflBBLLD"])  
+        self.multipleMoves(testMoves,self.cubeArr)
+        self.solution+=testMoves
+
+        testMoves = self.bfs((5,0,0), yellowCornersAdditional)
+        self.multipleMoves(testMoves,self.cubeArr)
+        self.solution+=testMoves
+
         return
+
     def solveYellowEdges(self):
+
+        testMoves = self.bfs((5,0,1), yellowEdgesStandard + self.changeFront(["Z","ZZ","z"],yellowEdgesStandard))
+        self.multipleMoves(testMoves,self.cubeArr)
+        self.solution+=testMoves
+
+
+        testMoves = self.bfs((5,1,2), self.changeFront(["Z"],yellowEdgesStandard))
+        self.multipleMoves(testMoves,self.cubeArr)
+        self.solution+=testMoves
+
+
         return
 
 
@@ -717,6 +836,7 @@ newCube.printCube(newCube.cubeArr)
 
 
 print(newCube.changeFront(["z"],["R"]))
+print(newCube.changeFront("Z","L"))
 
 '''
 run = True
