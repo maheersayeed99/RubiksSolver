@@ -1,28 +1,5 @@
 from databases import *
 
-edgeMap = {
-    0:(0,1),
-    1:(1,2),
-    2:(2,1),
-    3:(1,0),
-}
-
-upCornerMap = {
-    0: (0,0),
-    1: (0,2),
-    2: (2,2),
-    3: (2,0)
-}
-
-downCornerMap = {
-    0: (0,2),
-    1: (2,2),
-    2: (2,0),
-    3: (0,0)
-}
-
-
-
 class face:
 
     def __init__(self, index, cube) -> None:
@@ -39,11 +16,11 @@ class face:
         match self.index:
             
             case 0:
-                self.neighbors = [(4,0),(3,0),(2,0),(1,0)]
+                self.neighbors = [(4,0),(3,0),(2,0),(1,0)]          # Neighbors are listed in order top, right, down, left from the perspective of the face
             case 1:
-                self.neighbors = [(0,3),(2,3),(5,3),(4,1)]
-            case 2:
-                self.neighbors = [(0,2),(3,3),(5,0),(1,1)]
+                self.neighbors = [(0,3),(2,3),(5,3),(4,1)]          # First entry is the cube index of the neighboring face, second entry is the direction of the piece
+            case 2:                                                 # that touches the current face
+                self.neighbors = [(0,2),(3,3),(5,0),(1,1)]          # 0 means top piece, 1 means right piece, 2 means down piece, 3 means left piece
             case 3:
                 self.neighbors = [(0,1),(4,3),(5,1),(2,1)]
             case 4:
@@ -57,7 +34,7 @@ class face:
 
 
 
-    '''def setFacetParents(self,cube):                                 # This is done so each facet identifies with the other facets in its piece
+    '''def setFacetParents(self,cube):                                 # Basic Parent assignment for each facet. Does not allow for manual scramble and solve
         #center
         cube[self.index][1][1].faces[self.index]+=1
         # up edge
@@ -89,10 +66,14 @@ class face:
         cube[self.index][0][0].faces[self.neighbors[0][0]]+=1
         cube[self.index][0][0].faces[self.neighbors[3][0]]+=1'''
 
-    def setFacetParents(self,cube):                                 # This is done so each facet identifies with the other facets in its piece
+
+
+
+    def setFacetParents(self,cube):                                 # Advanced Parent assignment allows for manual scramble and solve
         #center
         #cube[self.index][1][1].faces[self.index]+=1
         cube[self.index][1][1].faces[indexMap[cube[self.index][1][1].color]]+=1
+        
         
         # up edge
         cube[self.index][0][1].faces[indexMap[cube[self.index][0][1].color]]+=1
@@ -107,62 +88,33 @@ class face:
         cube[self.index][1][0].faces[indexMap[cube[self.index][1][0].color]]+=1
         cube[self.index][1][0].faces[indexMap[cube[self.neighbors[3][0]][edgeMap[self.neighbors[3][1]][0]][edgeMap[self.neighbors[3][1]][1]].color]]+=1
         
-        
-        
-        
-        
+        # Facet at cell
+        #                       access faces
+        #                            Use index map to convert color to index
+        #                                       Second entry in neighbors is down, right, so correct face index
+        #                                                                Second and third index is taken from downCornerMap with direction
         
         
         # up right corner
         cube[self.index][0][2].faces[indexMap[cube[self.index][0][2].color]]+=1
         cube[self.index][0][2].faces[indexMap[cube[self.neighbors[0][0]][upCornerMap[self.neighbors[0][1]][0]][upCornerMap[self.neighbors[0][1]][1]].color]]+=1
         cube[self.index][0][2].faces[indexMap[cube[self.neighbors[1][0]][downCornerMap[self.neighbors[1][1]][0]][downCornerMap[self.neighbors[1][1]][1]].color]]+=1
-
-
-
-        #cube[self.index][0][2].faces[self.neighbors[0][0]]+=1
-        #cube[self.index][0][2].faces[self.neighbors[1][0]]+=1
-        
-        
         
         
         # down right corner
         cube[self.index][2][2].faces[indexMap[cube[self.index][2][2].color]]+=1
-        
-        #cube[self.index][2][2].faces[self.neighbors[2][0]]+=1
-        #cube[self.index][2][2].faces[self.neighbors[1][0]]+=1
         cube[self.index][2][2].faces[indexMap[cube[self.neighbors[1][0]][upCornerMap[self.neighbors[1][1]][0]][upCornerMap[self.neighbors[1][1]][1]].color]]+=1
-        # Facet at cell
-        #                       access faces
-        #                            Use index map to convert color to index
-        #                                       Second entry in neighbors is down, right, so correct face index
-        #                                                                Second and third index is taken from downCornerMap with direction 
         cube[self.index][2][2].faces[indexMap[cube[self.neighbors[2][0]][downCornerMap[self.neighbors[2][1]][0]][downCornerMap[self.neighbors[2][1]][1]].color]]+=1
         
-        
-        
-        
-        
-        
+
         # down left corner
         cube[self.index][2][0].faces[indexMap[cube[self.index][2][0].color]]+=1
-        
-        #cube[self.index][2][0].faces[self.neighbors[2][0]]+=1
-        #cube[self.index][2][0].faces[self.neighbors[3][0]]+=1
-        
         cube[self.index][2][0].faces[indexMap[cube[self.neighbors[2][0]][upCornerMap[self.neighbors[2][1]][0]][upCornerMap[self.neighbors[2][1]][1]].color]]+=1
         cube[self.index][2][0].faces[indexMap[cube[self.neighbors[3][0]][downCornerMap[self.neighbors[3][1]][0]][downCornerMap[self.neighbors[3][1]][1]].color]]+=1
         
         
-        
-        
         # up left corner
         cube[self.index][0][0].faces[indexMap[cube[self.index][0][0].color]]+=1
-        
-        #cube[self.index][0][0].faces[self.neighbors[0][0]]+=1
-        #cube[self.index][0][0].faces[self.neighbors[3][0]]+=1
-
-
         cube[self.index][0][0].faces[indexMap[cube[self.neighbors[3][0]][upCornerMap[self.neighbors[3][1]][0]][upCornerMap[self.neighbors[3][1]][1]].color]]+=1
         cube[self.index][0][0].faces[indexMap[cube[self.neighbors[0][0]][downCornerMap[self.neighbors[0][1]][0]][downCornerMap[self.neighbors[0][1]][1]].color]]+=1
 

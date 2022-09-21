@@ -65,3 +65,25 @@ indexMap = {"w" : 0,
             "b" : 3,
             "o" : 4,
             "y" : 5}
+
+# The next three maps are used for peer assignments of each facet (A peer is other colors in the same piece)
+edgeMap = {
+    0:(0,1),
+    1:(1,2),
+    2:(2,1),
+    3:(1,0),
+}
+
+upCornerMap = {
+    0: (0,0),
+    1: (0,2),
+    2: (2,2),
+    3: (2,0)
+}
+
+downCornerMap = {
+    0: (0,2),
+    1: (2,2),
+    2: (2,0),
+    3: (0,0)
+}

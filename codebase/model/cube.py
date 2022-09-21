@@ -22,6 +22,7 @@ class cube:
         self.history = []                                               # Used for reversing moves
         self.scrambleMoves = []                                         # Stores scramble 
         self.solution = []                                              # Stores solution
+        self.solutionString = ""
         self.solutionLength = 0
         
         self.solveGraph = dict()                                        # Graph used for backtracking
@@ -190,18 +191,27 @@ class cube:
     
     def scramble(self, numMoves,cube) -> None:                                   # Scrambles the cube by randomly performing a set number of moves
         self.scrambleMoves = []
+        
 
         for move in range(numMoves):
             key, val = random.choice(list(rotMap.items()))
             self.scrambleMoves.append(key)
             self.singleMove(key,cube)
 
-    def manualScramble(self, faceIdx, cube, inputFace) -> None:             # Manual scramble
-        currFace = cube[faceIdx]
-        for row in range(len(currFace)):
-            for col in range(len(currFace[0])):
-                cube[faceIdx][row][col].color = inputFace[row][col]
-                cube[faceIdx][row][col].faces = [0]*6
+    
+    def manualScramble(self,cube,inputCube):
+        for currFace in self.faceArr:
+            self.manualScrambleFace(currFace,cube,inputCube[currFace.index])
+        for currFace in self.faceArr:
+            currFace.setFacetParents(cube)
+    
+    
+    def manualScrambleFace(self, currFace, cube, inputFace) -> None:             # Manual scramble
+        for row in range(len(cube[currFace.index])):
+            for col in range(len(cube[currFace.index][0])):
+                cube[currFace.index][row][col].color = inputFace[row][col]
+                cube[currFace.index][row][col].faces = [0]*6
+
 
 
 
@@ -438,6 +448,7 @@ class cube:
 
     def solveCube(self) -> None:
         self.solution = []
+        self.solutionString = ""
 
         self.solveWhiteCross()
         #print("cross done")
@@ -453,6 +464,11 @@ class cube:
         #print("top corners done")
         self.solveYellowEdges()
         #print("cube done")
+        self.solutionString = self.solutionString.join(self.solution)
+        self.removeDuplicates(self.solutionString)
+
+
+
 
     
     def solveWhiteCross(self) -> None:
@@ -718,125 +734,103 @@ class cube:
 
         return
 
+    def removeDuplicates(self, inputString):
+        tempList = list(inputString)
+        rsltList = []
+        if len(tempList) <2:
+            return tempList
+        
+        left = 0
+        right = 1
+
+        while right<len(tempList):
+
+            if tempList[left] == tempList[right]:
+                tempStr = tempList[left]+tempList[left]
+                rsltList.append(tempStr)
+                left = right
+                right += 1
+            
+            else:
+                rsltList.append(tempList[left])
+            
+            left += 1
+            right += 1
+        
+        if  tempList[-1] != tempList[-2]:
+            rsltList.append(tempList[-1])
+
+        self.solution = rsltList
+        return rsltList
+
+
 
 
 newCube = cube()
 
-face1 = [
-        ["b", "y", "g"],
-        ["g", "w", "y"],
-        ["o", "b", "r"]
-        ]
-face2 = [
-        ["w", "r", "b"],
-        ["b", "g", "b"],
-        ["b", "b", "g"]
-        ]
-face3 = [
-        ["y", "w", "g"],
-        ["o", "r", "w"],
-        ["y", "g", "y"]
-        ]
-face4 = [
-        ["y", "g", "w"],
-        ["r", "b", "g"],
-        ["r", "y", "r"]
-        ]
-face5 = [
-        ["o", "r", "o"],
-        ["o", "o", "y"],
-        ["g", "w", "w"]
-        ]
-face6 = [
-        ["o", "w", "b"],
-        ["r", "y", "o"],
-        ["r", "o", "w"]
-        ]
-
-
-'''face1 = [
-        ["w", "w", "w"],
-        ["w", "w", "w"],
-        ["b", "b", "b"]
-        ]
-face2 = [
-        ["g", "g", "w"],
-        ["g", "g", "w"],
-        ["g", "g", "w"]
-        ]
-face3 = [
-        ["r", "r", "r"],
-        ["r", "r", "r"],
-        ["r", "r", "r"]
-        ]
-face4 = [
-        ["y", "b", "b"],
-        ["y", "b", "b"],
+face1 = [[
+        ["g", "w", "b"],
+        ["y", "w", "w"],
+        ["y", "g", "o"]
+        ],
+        [
+        ["o", "r", "b"],
+        ["r", "g", "b"],
+        ["r", "b", "b"]
+        ],
+        [
+        ["r", "y", "y"],
+        ["r", "r", "y"],
+        ["r", "b", "g"]
+        ],
+        [
+        ["g", "g", "o"],
+        ["o", "b", "g"],
+        ["w", "w", "o"]
+        ],
+        [
+        ["w", "o", "w"],
+        ["o", "o", "g"],
+        ["y", "o", "g"]
+        ],
+        [
+        ["w", "y", "r"],
+        ["w", "y", "r"],
         ["y", "b", "b"]
-        ]
-face5 = [
-        ["o", "o", "o"],
-        ["o", "o", "o"],
-        ["o", "o", "o"]
-        ]
-face6 = [
-        ["g", "g", "g"],
-        ["y", "y", "y"],
-        ["y", "y", "y"]
-        ]'''
-newCube.printCube(newCube.cubeArr)
+        ]]
 
-newCube.manualScramble(0,newCube.cubeArr,face1)
-newCube.manualScramble(1,newCube.cubeArr,face2)
-newCube.manualScramble(2,newCube.cubeArr,face3)
-newCube.manualScramble(3,newCube.cubeArr,face4)
-newCube.manualScramble(4,newCube.cubeArr,face5)
-newCube.manualScramble(5,newCube.cubeArr,face6)
 
-#newCube.scramble(20,newCube.cubeArr)
+'''newCube.printCube(newCube.cubeArr)
 
+newCube.scramble(20,newCube.cubeArr)
+#newCube.manualScramble(newCube.cubeArr,face1)
 
 newCube.printCube(newCube.cubeArr)
-
-for currFace in newCube.faceArr:
-    currFace.setFacetParents(newCube.cubeArr)
-
-
-x = 5
-y = 2
-z = 0
-
-print(newCube.cubeArr[x][y][z].faces, " ",newCube.cubeArr[x][y][z].color)
-
-# TOP LEFT WORKS
-# BOTTOM RIGHT WORKS
-# HALF OF TOP RIGHT WORKS
-# BOTTOM LEFT WORKS
-
-#newCube.solveGraph = dict()                                        # Graph used for backtracking
-#newCube.initializeGraph()
 
 
 newCube.solveCube()
 
 
+
+
 newCube.printCube(newCube.cubeArr)
-print(newCube.cubeArr[1][2][2].faces, " ",newCube.cubeArr[1][2][2].color)
+
 
 print(newCube.solution)
-
-
-
-'''tot = 0
-numIters = 10
-for i in range(numIters):
-    rslt = ""
-    newCube.scramble(20,newCube.cubeArr)
-    newCube.solveCube()
-    rslt = rslt.join(newCube.solution)
-    tot+=len(rslt)
-
-print("Average = ", tot/numIters)
+print(len(newCube.solution))
 '''
+
+tot = 0
+numIters = 100
+for i in range(numIters):
+    
+    newCube.scramble(100,newCube.cubeArr)
+    newCube.solveCube()
+    
+    tot+=len(newCube.solution)
+print("Average = ", tot/numIters)
+
+
+
 
 
