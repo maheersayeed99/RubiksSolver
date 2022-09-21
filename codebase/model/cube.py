@@ -52,8 +52,8 @@ revMap = {                          # This map is used to reverse moves. When a 
 # All the algorithms for each step of solving the cube        
 
 whiteCrossStandard = ["L","l","D","d"]
-whiteCrossAdditional = ["RDr","Rdr", "rDR","rdR"]
-whiteCornerStandard = ["fdFD","LDld","fDDFDfdF"]
+whiteCrossAdditional = ["RDr","RDDr","Rdr", "rDR", "rDDR", "rdR"]
+whiteCornerStandard = ["fdF", "fddF", "LDl", "LDDl", "fDDFDfdF"]
 whiteCornerAdditional = ["D","d"]
 middleLayerStandard = ["fdFDLDl", "LDldfdF"]
 middleLayerAdditional = ["D","d"]
@@ -312,7 +312,7 @@ class cube:
         for currFace in range(6):
             for row in range(3):
                 for col in range(3):
-                    self.solveGraph[(currFace,row,col)].score = 10000      # reset Map
+                    self.solveGraph[(currFace,row,col)].score = float("inf")      # reset Map
                     self.solveGraph[(currFace,row,col)].parent = None
 
 
@@ -416,11 +416,7 @@ class cube:
             #heapq.heappush(heap, (1,checkNode1))
         i = 0
         while len(priorityQ)>0:
-            i+=1
-            print(i)
-            if i == 10000:
-                
-                return "STUCK IN LOOP" 
+            
             front = priorityQ[0]
 
             if front.pos == targetPos:
@@ -442,7 +438,10 @@ class cube:
                             
             visited.append(front)
 
-            heapq.heappop(priorityQ)
+            #heapq.heappop(priorityQ)
+            priorityQ.pop(0)
+            heapq.heapify(priorityQ)
+            
 
         
 
@@ -450,13 +449,17 @@ class cube:
         if len(priorityQ)==0:
             return "NOT FOUND"
 
-        self.solutionLength = front.score
-
-        print("exited loop")
+        self.solutionLength += front.score
 
         backtrack = []
 
-        while front != None and front.pos != currPos and front.pos!= None:
+        while True:
+            if front == None:
+                print("None case")
+                break
+            elif front == self.solveGraph[currPos]:
+                print("match case")
+                break
             backtrack.append(front.parentMove)
             front = front.parent 
             
@@ -778,7 +781,7 @@ class cube:
 
 newCube = cube()
 
-newCube.scramble(100,newCube.cubeArr)
+newCube.scramble(20,newCube.cubeArr)
 newCube.printCube(newCube.cubeArr)
 
 newCube.solveCube()
@@ -791,6 +794,8 @@ rslt = rslt.join(newCube.solution)
 print(newCube.solution)
 print(len(rslt))
 newCube.printCube(newCube.cubeArr)
+print("\n")
+print(rslt)
 
 
 print(newCube.changeFront(["z"],["R"]))
