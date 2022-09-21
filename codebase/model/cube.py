@@ -10,6 +10,7 @@ import heapq
 
 
 
+
 class cube:
     def __init__(self) -> None:
         
@@ -39,6 +40,12 @@ class cube:
                 for col in range(3):
                     tempFacet = facet(colorMap[currFace])               # Every cell in 3D array is populated with a facet object
                     self.cubeArr[currFace][row][col] = tempFacet
+
+
+    def setFaces(self,cube):
+        # edge1
+        cube[0][0][1].faces[indexMap[cube[0][0][1].color]]+=1
+
         
     
     
@@ -189,6 +196,15 @@ class cube:
             self.scrambleMoves.append(key)
             self.singleMove(key,cube)
 
+    def manualScramble(self, faceIdx, cube, inputFace) -> None:             # Manual scramble
+        currFace = cube[faceIdx]
+        for row in range(len(currFace)):
+            for col in range(len(currFace[0])):
+                cube[faceIdx][row][col].color = inputFace[row][col]
+                cube[faceIdx][row][col].faces = [0]*6
+
+
+
 
 
 
@@ -203,6 +219,7 @@ class cube:
                 for col in range(3):
                     if cube1[pos[0]][pos[1]][pos[2]].isSame(cube2[currFace][row][col]):
                         return (currFace, row, col)
+        print("NOT FOUND")
     
     
     def initializeGraph(self) -> None:
@@ -702,9 +719,115 @@ class cube:
         return
 
 
+
 newCube = cube()
 
-tot = 0
+face1 = [
+        ["b", "y", "g"],
+        ["g", "w", "y"],
+        ["o", "b", "r"]
+        ]
+face2 = [
+        ["w", "r", "b"],
+        ["b", "g", "b"],
+        ["b", "b", "g"]
+        ]
+face3 = [
+        ["y", "w", "g"],
+        ["o", "r", "w"],
+        ["y", "g", "y"]
+        ]
+face4 = [
+        ["y", "g", "w"],
+        ["r", "b", "g"],
+        ["r", "y", "r"]
+        ]
+face5 = [
+        ["o", "r", "o"],
+        ["o", "o", "y"],
+        ["g", "w", "w"]
+        ]
+face6 = [
+        ["o", "w", "b"],
+        ["r", "y", "o"],
+        ["r", "o", "w"]
+        ]
+
+
+'''face1 = [
+        ["w", "w", "w"],
+        ["w", "w", "w"],
+        ["b", "b", "b"]
+        ]
+face2 = [
+        ["g", "g", "w"],
+        ["g", "g", "w"],
+        ["g", "g", "w"]
+        ]
+face3 = [
+        ["r", "r", "r"],
+        ["r", "r", "r"],
+        ["r", "r", "r"]
+        ]
+face4 = [
+        ["y", "b", "b"],
+        ["y", "b", "b"],
+        ["y", "b", "b"]
+        ]
+face5 = [
+        ["o", "o", "o"],
+        ["o", "o", "o"],
+        ["o", "o", "o"]
+        ]
+face6 = [
+        ["g", "g", "g"],
+        ["y", "y", "y"],
+        ["y", "y", "y"]
+        ]'''
+newCube.printCube(newCube.cubeArr)
+
+newCube.manualScramble(0,newCube.cubeArr,face1)
+newCube.manualScramble(1,newCube.cubeArr,face2)
+newCube.manualScramble(2,newCube.cubeArr,face3)
+newCube.manualScramble(3,newCube.cubeArr,face4)
+newCube.manualScramble(4,newCube.cubeArr,face5)
+newCube.manualScramble(5,newCube.cubeArr,face6)
+
+#newCube.scramble(20,newCube.cubeArr)
+
+
+newCube.printCube(newCube.cubeArr)
+
+for currFace in newCube.faceArr:
+    currFace.setFacetParents(newCube.cubeArr)
+
+
+x = 5
+y = 2
+z = 0
+
+print(newCube.cubeArr[x][y][z].faces, " ",newCube.cubeArr[x][y][z].color)
+
+# TOP LEFT WORKS
+# BOTTOM RIGHT WORKS
+# HALF OF TOP RIGHT WORKS
+# BOTTOM LEFT WORKS
+
+#newCube.solveGraph = dict()                                        # Graph used for backtracking
+#newCube.initializeGraph()
+
+
+newCube.solveCube()
+
+
+newCube.printCube(newCube.cubeArr)
+print(newCube.cubeArr[1][2][2].faces, " ",newCube.cubeArr[1][2][2].color)
+
+print(newCube.solution)
+
+
+
+'''tot = 0
 numIters = 10
 for i in range(numIters):
     rslt = ""
@@ -714,6 +837,6 @@ for i in range(numIters):
     tot+=len(rslt)
 
 print("Average = ", tot/numIters)
-
+'''
 
 
