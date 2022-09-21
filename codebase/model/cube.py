@@ -1,105 +1,14 @@
-from queue import PriorityQueue
+import string
+from tokenize import String
+from typing import List, Tuple
+from part import *
 from face import *
+from databases import *
 import random
 import copy
 import heapq
 
-colorMap = {                        # This map is used to initialize face colors when the cube is first made
-        0 : "w",
-        1 : "g", 
-        2 : "r", 
-        3 : "b", 
-        4 : "o", 
-        5 : "y"
-        }
 
-rotMap = {                          # This map is used to find out which face to rotate for the corresponding move
-        "U": (0,True),  
-        "u": (0,False),
-        "L": (1,True),
-        "l": (1,False),
-        "F": (2,True),
-        "f": (2,False),
-        "R": (3,True),
-        "r": (3,False),
-        "B": (4,True),
-        "b": (4,False),
-        "D": (5,True),
-        "d": (5,False)
-        }
-
-revMap = {                          # This map is used to reverse moves. When a move is made, the reverse move is appended to the self.history stack
-        "U": "u",
-        "u": "U",
-        "L": "l",
-        "l": "L",
-        "F": "f",
-        "f": "F",
-        "R": "r",
-        "r": "R",
-        "B": "b",
-        "b": "B",
-        "D": "d",
-        "d": "D",
-        "X": "x",
-        "Y": "y",
-        "Z": "z",
-        "x": "X",
-        "y": "Y",
-        "z": "Z"
-        }
-
-# All the algorithms for each step of solving the cube        
-
-whiteCrossStandard = ["L","l","D","d"]
-whiteCrossAdditional = ["RDr","RDDr","Rdr", "rDR", "rDDR", "rdR"]
-whiteCornerStandard = ["fdF", "fddF", "LDl", "LDDl", "fDDFDfdF"]
-whiteCornerAdditional = ["D","d"]
-middleLayerStandard = ["fdFDLDl", "LDldfdF"]
-middleLayerAdditional = ["D","d"]
-yellowCrossStandard = ["FDLdlf","FLDldf"]
-yellowCrossAdditional = ["D","d"]
-yellowFaceStandard = ["LDlDLDDl"]
-yellowFaceAdditional = ["D","d"]
-yellowCornersStandard = ["lFlBBLflBBLL"]
-yellowCornersAdditional = ["D","d"]
-yellowEdgesStandard = ["RRdBfRRbFdRR"]
-
-
-
-
-class facet:                                                                # Every cell of the cube is called a facet, regardless of type of piece
-    def __init__(self, color) -> None:                                      # Main cube structure is occupied by these facect objects
-        self.color = color
-        self.parent = None
-        self.faces = [0]*6                                                  # This array shows all the colors that are in the parent piece that this edge is a part of
-                                                                            # Follows same structure as colorMap
-
-    def isSame(self, other):
-        return self.color == other.color and self.faces == other.faces      # Two facets of different cubes can represent the same piece if the face color and faces list are the same
-
-    def isSameColor(self,other):
-        return self.color == other.color
-
-
-class node:                                             # Nodes are used when the graph is generated for pathfinding
-    def __init__(self,pos, score) -> None:                     # Node graph is strored in self.solveGraph map
-        self.pos = pos
-        self.changeList = dict()                        # change list maps every move to the node at the resulting location
-        self.parent = None
-        self.parentMove = ""
-        self.score = score
-
-    def __lt__(self, other):
-        return self.score < other.score
-        
-
-'''class change:                                           
-    def __init__(self, move, targetNode) -> None:       # every node has a list of changes based on the moves stored in the graph
-        #self.parent = None                              # previous edge
-        #self.move = move                                # The move itself will be used for backtracking purposes
-        self.targetNode = targetNode                    # node at new location resulting from the move
-'''
 
 class cube:
     def __init__(self) -> None:
@@ -121,7 +30,7 @@ class cube:
         return None
 
     
-    def populateCube(self):
+    def populateCube(self) -> None:
         for i in  range(6):
             self.cubeArr.append([[None]* 3 for i in range(3)])
 
@@ -132,14 +41,15 @@ class cube:
                     self.cubeArr[currFace][row][col] = tempFacet
         
     
-    def resetCube(self):                                                # Resets Cube to solved state (Cheating, not actually solving)
+    
+    def resetCube(self) -> None:                                                # Resets Cube to solved state (Cheating, not actually solving)
         del self.cubeArr
         self.cubeArr = self.startArr
         self.startArr = copy.deepcopy(self.cubeArr)
 
 
     
-    def printCube(self,cube):             # Prints cube on terminal
+    def printCube(self,cube) -> None:             # Prints cube on terminal
 
         print("\n")
 
@@ -160,7 +70,11 @@ class cube:
 
 
 
-    def rotateFullCube(self, direction):
+
+
+    ###################################    ROTATION   ####################################################
+
+    def rotateFullCube(self, direction) -> None:
         if direction == "X":
             self.turnCubeX()
         elif direction == "x":
@@ -174,7 +88,8 @@ class cube:
         elif direction == "z":
             self.turnCubeZ(False)
 
-    def turnCubeX(self, clockwise = True):                                                  # Turn Whole Cube around X axis
+
+    def turnCubeX(self, clockwise = True) -> None:                                                  # Turn Whole Cube around X axis
         temp = self.cubeArr[0]
         tempStart = self.startArr[0]
 
@@ -198,7 +113,7 @@ class cube:
         self.faceArr[5].rotateFace(self.cubeArr, clockwise)
     
 
-    def turnCubeZ(self, clockwise = True):                                              # Turn Whole Cube around Z axis
+    def turnCubeZ(self, clockwise = True) -> None:                                              # Turn Whole Cube around Z axis
         temp = self.cubeArr[1]
         tempStart = self.startArr[1]
 
@@ -218,7 +133,7 @@ class cube:
         self.faceArr[5].rotateFace(self.cubeArr, not clockwise)
 
     
-    def turnCubeY(self, clockwise = True):                                              # Turn Whole Cube around Y axis
+    def turnCubeY(self, clockwise = True) -> None:                                              # Turn Whole Cube around Y axis
         
         temp = self.cubeArr[0]
         tempStart = self.startArr[0]
@@ -243,7 +158,7 @@ class cube:
         self.faceArr[5].rotateFace(self.cubeArr)
 
     
-    def singleMove(self,move,cube,reverse = False):
+    def singleMove(self,move,cube,reverse = False) -> None:
         
         for turn in move:
             if turn not in rotMap:
@@ -255,46 +170,34 @@ class cube:
                 self.history.append(revMap[turn])
 
 
-    def reverseMove(self,s,cube):
+    def reverseMove(self,s,cube) -> None:
         for moves in range(len(s)):
             self.singleMove(self.history.pop(),cube, True)          # Reversing moves uses the history stack initialized earlier
 
 
     
-    def multipleMoves(self,moves,cube):                                  # Performs multiple moves from an array
+    def multipleMoves(self,moves,cube) -> None:                                  # Performs multiple moves from an array
         for move in moves:
             self.singleMove(move,cube)
     
     
-    def scramble(self, numMoves,cube):                                   # Scrambles the cube by randomly performing a set number of moves
+    def scramble(self, numMoves,cube) -> None:                                   # Scrambles the cube by randomly performing a set number of moves
         self.scrambleMoves = []
+
         for move in range(numMoves):
             key, val = random.choice(list(rotMap.items()))
             self.scrambleMoves.append(key)
             self.singleMove(key,cube)
 
 
-    
-    # TODO
-    # need to figure out node class for pathfinding
-    # thinking lookup tables for each type of rotation, problem is the lookup tables could also be used for the regular rotation mechanism
-    # Seems like hard-coding, not an elegant solution
-    # maybe research other ways to rotate mathematically 
+
+
+    ###################################  GRAPH PATHFINDING   ####################################################
 
 
 
-    # instead of string, make every cell a facelet
-    # every facelet should be attached to a cubelet parent
-    # iterate through every piece and check if it moves
-    # if it moves find current piece from graph
-    # find new piece location from graph
-    # add edge to piece
 
-
-    # find piece
-    
-
-    def findPiece(self, pos, cube1, cube2):                                                 # iterates through 3d array to find matching piece
+    def findPiece(self, pos, cube1, cube2) -> tuple[int,int,int]:                                                 # iterates through 3d array to find matching piece
         for currFace in range(6):                                                           # Can be improved maybe with another map? Hard to say
             for row in range(3):
                 for col in range(3):
@@ -302,13 +205,13 @@ class cube:
                         return (currFace, row, col)
     
     
-    def initializeGraph(self):
+    def initializeGraph(self) -> None:
         for currFace in range(6):
             for row in range(3):
                 for col in range(3):
-                    self.solveGraph[(currFace,row,col)] = node((currFace,row,col),1000000)      # initialize map
+                    self.solveGraph[(currFace,row,col)] = node((currFace,row,col),float("inf"))      # initialize map
 
-    def resetGraph(self):
+    def resetGraph(self) -> None:
         for currFace in range(6):
             for row in range(3):
                 for col in range(3):
@@ -316,7 +219,7 @@ class cube:
                     self.solveGraph[(currFace,row,col)].parent = None
 
 
-    def generateGraph(self, moves):                                                     # Makes graph mapping index changes from a group of moves
+    def generateGraph(self, moves) -> None:                                                     # Makes graph mapping index changes from a group of moves
 
         tempCube = copy.deepcopy(self.cubeArr)                                          # make temporaty cube
 
@@ -340,7 +243,7 @@ class cube:
         del tempCube            # free memory
 
 
-    def changeFront(self, rotations, inputList):         # Takes Algorithm and returns the same algorithm after the front is changed with a whole cube rotation
+    def changeFront(self, rotations, inputList) -> None:         # Takes Algorithm and returns the same algorithm after the front is changed with a whole cube rotation
         
         moves = ["U","L","F","R","B","D"]
         movesMap = dict()
@@ -385,7 +288,7 @@ class cube:
     
     
     
-    def addAlgorithms(self):                                                                                    # Populates graph from function above with all the changes from each set of algorithms
+    def addAlgorithms(self) -> None:                                                                                    # Populates graph from function above with all the changes from each set of algorithms
         self.generateGraph(whiteCrossStandard + self.changeFront(["Z","ZZ","z"],whiteCrossStandard))
         self.generateGraph(whiteCrossAdditional + self.changeFront(["Z","ZZ","z"],whiteCrossAdditional))
         self.generateGraph(whiteCornerStandard + self.changeFront(["Z","ZZ","z"],whiteCornerStandard))
@@ -397,7 +300,7 @@ class cube:
 
     
 
-    def bfs(self, targetPos, moves):
+    def shortestPath(self, targetPos, moves) -> list[string]:
 
         self.resetGraph()
 
@@ -455,10 +358,10 @@ class cube:
 
         while True:
             if front == None:
-                print("None case")
+                #print("None case")
                 break
             elif front == self.solveGraph[currPos]:
-                print("match case")
+                #print("match case")
                 break
             backtrack.append(front.parentMove)
             front = front.parent 
@@ -469,7 +372,7 @@ class cube:
 
     
     
-    '''def bfs(self, targetPos, moves):
+    '''def shortestPath(self, targetPos, moves) -> list[string]:
 
         newQ = []
         visited = []
@@ -516,98 +419,123 @@ class cube:
     ###################################    SOLVE   ####################################################
 
 
-    def solveCube(self):
+    def solveCube(self) -> None:
+        self.solution = []
+
         self.solveWhiteCross()
-        print("cross done")
+        #print("cross done")
         self.solveWhiteCorners()
-        print("corners done")
+        #print("corners done")
         self.solveMiddleLayer()
-        print("middles done")
+        #print("middles done")
         self.solveYellowCross()
-        print("top cross done")
+        #print("top cross done")
         self.solveYellowFace()
-        print("top face done")
+        #print("top face done")
         self.solveYellowCorners()
-        print("top corners done")
+        #print("top corners done")
         self.solveYellowEdges()
-        print("cube done")
+        #print("cube done")
 
     
-    def solveWhiteCross(self):
+    def solveWhiteCross(self) -> None:
 
         # First Edge
-        currMoves = self.bfs((0,0,1),whiteCrossStandard + self.changeFront(["Z","ZZ","z"],whiteCrossStandard) + whiteCrossAdditional + self.changeFront(["Z","ZZ","z"],whiteCornerAdditional))
+        currMoves = self.shortestPath((0,0,1),whiteCrossStandard + self.changeFront(["Z","ZZ","z"],whiteCrossStandard) + whiteCrossAdditional + self.changeFront(["Z","ZZ","z"],whiteCornerAdditional))
         self.multipleMoves(currMoves,self.cubeArr)
         self.solution+=currMoves
 
         # Second Edge
-        currMoves = self.bfs((0,1,2),whiteCrossStandard + self.changeFront(["Z","ZZ"],whiteCrossStandard) + whiteCrossAdditional + self.changeFront(["Z","ZZ","z"],whiteCornerAdditional))
+        currMoves = self.shortestPath((0,1,2),whiteCrossStandard + self.changeFront(["Z","ZZ"],whiteCrossStandard) + whiteCrossAdditional + self.changeFront(["Z","ZZ","z"],whiteCornerAdditional))
         self.multipleMoves(currMoves,self.cubeArr)
         self.solution+=currMoves
 
         # Third Edge
-        currMoves = self.bfs((0,2,1),whiteCrossStandard + self.changeFront(["Z"],whiteCrossStandard) + whiteCrossAdditional + self.changeFront(["Z","ZZ","z"],whiteCornerAdditional))
+        currMoves = self.shortestPath((0,2,1),whiteCrossStandard + self.changeFront(["Z"],whiteCrossStandard) + whiteCrossAdditional + self.changeFront(["Z","ZZ","z"],whiteCornerAdditional))
         self.multipleMoves(currMoves,self.cubeArr)
         self.solution+=currMoves
 
         # Fourth Edge
-        currMoves = self.bfs((0,1,0),whiteCrossStandard + whiteCrossAdditional + self.changeFront(["Z","ZZ","z"],whiteCrossAdditional))
+        currMoves = self.shortestPath((0,1,0),whiteCrossStandard + whiteCrossAdditional + self.changeFront(["Z","ZZ","z"],whiteCrossAdditional))
         self.multipleMoves(currMoves,self.cubeArr)
         self.solution+=currMoves
 
 
-    def solveWhiteCorners(self):
+    def solveWhiteCorners(self) -> None:
 
         # First Corner
-        currMoves = self.bfs((0,2,2), whiteCornerStandard + self.changeFront(["Z","ZZ","z"],whiteCornerStandard) + whiteCornerAdditional)
+        currMoves = self.shortestPath((0,2,2), whiteCornerStandard + self.changeFront(["Z","ZZ","z"],whiteCornerStandard) + whiteCornerAdditional)
         self.multipleMoves(currMoves,self.cubeArr)
         self.solution+=currMoves
 
         # Second Corner
-        currMoves = self.bfs((0,0,2), whiteCornerStandard + self.changeFront(["z","ZZ"],whiteCornerStandard) + whiteCornerAdditional)
+        currMoves = self.shortestPath((0,0,2), whiteCornerStandard + self.changeFront(["z","ZZ"],whiteCornerStandard) + whiteCornerAdditional)
         self.multipleMoves(currMoves,self.cubeArr)
         self.solution+=currMoves
 
         # Third Corner
-        currMoves = self.bfs((0,0,0), whiteCornerStandard + self.changeFront(["z"],whiteCornerStandard) + whiteCornerAdditional)
+        currMoves = self.shortestPath((0,0,0), whiteCornerStandard + self.changeFront(["z"],whiteCornerStandard) + whiteCornerAdditional)
         self.multipleMoves(currMoves,self.cubeArr)
         self.solution+=currMoves
 
         # Fourth Corner
-        currMoves = self.bfs((0,2,0), whiteCornerStandard + whiteCornerAdditional)
+        currMoves = self.shortestPath((0,2,0), whiteCornerStandard + whiteCornerAdditional)
         self.multipleMoves(currMoves,self.cubeArr)
         self.solution+=currMoves
 
     
-    def solveMiddleLayer(self):
+    def solveMiddleLayer(self) -> None:
 
         # First Edge
-        currMoves = self.bfs((2,1,2), middleLayerStandard + self.changeFront(["Z","ZZ","z"], middleLayerStandard) + middleLayerAdditional)
+        currMoves = self.shortestPath((2,1,2), middleLayerStandard + self.changeFront(["Z","ZZ","z"], middleLayerStandard) + middleLayerAdditional)
         self.multipleMoves(currMoves,self.cubeArr)
         self.solution+=currMoves
 
         # Second Edge
-        currMoves = self.bfs((3,1,2), middleLayerStandard + self.changeFront(["ZZ","z"], middleLayerStandard) + middleLayerAdditional)
+        currMoves = self.shortestPath((3,1,2), middleLayerStandard + self.changeFront(["ZZ","z"], middleLayerStandard) + middleLayerAdditional)
         self.multipleMoves(currMoves,self.cubeArr)
         self.solution+=currMoves
 
         # Third Edge
-        currMoves = self.bfs((4,1,2), middleLayerStandard + self.changeFront(["z"], middleLayerStandard) + middleLayerAdditional)
+        currMoves = self.shortestPath((4,1,2), middleLayerStandard + self.changeFront(["z"], middleLayerStandard) + middleLayerAdditional)
         self.multipleMoves(currMoves,self.cubeArr)
         self.solution+=currMoves
 
         # Fourth Edge
-        currMoves = self.bfs((1,1,2), middleLayerStandard + middleLayerAdditional)
+        currMoves = self.shortestPath((1,1,2), middleLayerStandard + middleLayerAdditional)
         self.multipleMoves(currMoves,self.cubeArr)
         self.solution+=currMoves
         
         return
-    
-    
-    def solveYellowCross(self):
 
-        currMoves = self.bfs((5,0,1), yellowCrossStandard + self.changeFront(["Z","ZZ","z"],yellowCrossStandard) + yellowCrossAdditional)
-        self.multipleMoves(currMoves,self.cubeArr)
+
+    def findSmallesStrings(self, listStrings) -> string:              # Helper Function
+        
+        smallest = listStrings[0]
+        for currString in listStrings:
+            if len(currString)<len(smallest):
+                smallest = currString
+        return smallest
+
+    
+    
+    def solveYellowCross(self) -> None:
+
+        
+        # Orient first edge
+
+        choiceArray = ["","","",""]
+        listStrings = []
+
+        listStrings.append(choiceArray[0].join(self.shortestPath((5,0,1), yellowCrossStandard + self.changeFront(["Z","ZZ","z"],yellowCrossStandard) + yellowCrossAdditional)))
+        listStrings.append(choiceArray[1].join(self.shortestPath((5,1,2), yellowCrossStandard + self.changeFront(["Z","ZZ","z"],yellowCrossStandard) + yellowCrossAdditional)+["d"]))
+        listStrings.append(choiceArray[2].join(self.shortestPath((5,2,1), yellowCrossStandard + self.changeFront(["Z","ZZ","z"],yellowCrossStandard) + yellowCrossAdditional)+["dd"]))
+        listStrings.append(choiceArray[3].join(self.shortestPath((5,1,0), yellowCrossStandard + self.changeFront(["Z","ZZ","z"],yellowCrossStandard) + yellowCrossAdditional)+["D"]))
+
+        currMoves = self.findSmallesStrings(listStrings)
+
+        #currMoves = self.shortestPath((5,0,1), yellowCrossStandard + self.changeFront(["Z","ZZ","z"],yellowCrossStandard) + yellowCrossAdditional)
+        self.multipleMoves([currMoves],self.cubeArr)
         self.solution+=currMoves
 
         if (self.cubeArr[5][1][0].isSameColor(self.startArr[5][1][0]) == True and \
@@ -637,10 +565,24 @@ class cube:
         self.multipleMoves(currMoves,self.cubeArr)
         self.solution+=currMoves
 
-    def solveYellowFace(self):
-        currMoves = self.bfs((5,0,0), yellowFaceStandard + self.changeFront(["Z","ZZ","z"],yellowFaceStandard) + yellowFaceAdditional)
+
+    def solveYellowFace(self) -> None:
+
+        # Orient first corner
+
+        choiceArray = ["","","",""]
+        listStrings = []
+
+        listStrings.append(choiceArray[0].join(self.shortestPath((5,0,0), yellowFaceStandard + self.changeFront(["Z","ZZ","z"],yellowFaceStandard) + yellowFaceAdditional)))
+        listStrings.append(choiceArray[1].join(self.shortestPath((5,0,2), yellowFaceStandard + self.changeFront(["Z","ZZ","z"],yellowFaceStandard) + yellowFaceAdditional)+ ["d"]))
+        listStrings.append(choiceArray[2].join(self.shortestPath((5,2,2), yellowFaceStandard + self.changeFront(["Z","ZZ","z"],yellowFaceStandard) + yellowFaceAdditional)+ ["dd"]))
+        listStrings.append(choiceArray[3].join(self.shortestPath((5,2,0), yellowFaceStandard + self.changeFront(["Z","ZZ","z"],yellowFaceStandard) + yellowFaceAdditional)+ ["D"]))
+
+        currMoves = self.findSmallesStrings(listStrings)
         
-        self.multipleMoves(currMoves,self.cubeArr)
+        #currMoves = self.shortestPath((5,0,0), yellowFaceStandard + self.changeFront(["Z","ZZ","z"],yellowFaceStandard) + yellowFaceAdditional)
+        
+        self.multipleMoves([currMoves],self.cubeArr)
         self.solution+=currMoves
 
         if (self.cubeArr[5][0][2].isSameColor(self.startArr[5][0][2]) == True and \
@@ -719,165 +661,59 @@ class cube:
         self.solution+=currMoves
             
             
+
+
     def solveYellowCorners(self):
 
-        currMoves = self.bfs((5,0,2), yellowCornersAdditional)
+        currMoves = self.shortestPath((5,0,2), yellowCornersAdditional)      # Position first corner
         self.multipleMoves(currMoves,self.cubeArr)
         self.solution+=currMoves
 
-        currMoves = self.bfs((5,0,0), yellowCornersStandard)
+        currMoves = self.shortestPath((5,0,0), yellowCornersStandard)        # Position adjacent corner
         self.multipleMoves(currMoves,self.cubeArr)
         self.solution+=currMoves
 
         if (self.cubeArr[5][2][0].isSame(self.startArr[5][2][0]) == True and \
-            self.cubeArr[5][2][2].isSame(self.startArr[5][2][2]) == True):
+            self.cubeArr[5][2][2].isSame(self.startArr[5][2][2]) == True):      # Position last 2 corners
             return
 
         currMoves = self.changeFront(["ZZ"],["lFlBBLflBBLLD"])  
         self.multipleMoves(currMoves,self.cubeArr)
         self.solution+=currMoves
 
-        currMoves = self.bfs((5,0,0), yellowCornersAdditional)
+        currMoves = self.shortestPath((5,0,0), yellowCornersAdditional)
         self.multipleMoves(currMoves,self.cubeArr)
         self.solution+=currMoves
 
         return
 
 
-    def solveYellowEdges(self):
+    def solveYellowEdges(self) -> None:
 
-        currMoves = self.bfs((5,0,1), yellowEdgesStandard + self.changeFront(["Z","ZZ","z"],yellowEdgesStandard))
+        currMoves = self.shortestPath((5,0,1), yellowEdgesStandard + self.changeFront(["Z","ZZ","z"],yellowEdgesStandard))   # Position first edge
         self.multipleMoves(currMoves,self.cubeArr)
         self.solution+=currMoves
 
-        currMoves = self.bfs((5,1,2), self.changeFront(["Z"],yellowEdgesStandard))
+        currMoves = self.shortestPath((5,1,2), self.changeFront(["Z"],yellowEdgesStandard))              # Position last 3 edges
         self.multipleMoves(currMoves,self.cubeArr)
         self.solution+=currMoves
 
 
         return
-
-
-    # Assign an object to every facelet and a parent
-    # The parent will be used to tell facelets apart
-    # After a rotation, the facelets at each cell move
-    # but each facelet still points to the same parent pieces
-
-    # Find facelet index in scrambled cube
-    # Rotate (facelets will move)
-    # check 
-
-    # Make rotation follow the facelets
-    # Initialize Graph
-    # Check if
-    
-
-
-    # NEW POWERS
-    # make list of nodes for every facet
-    # every facet has a list of edges that move it to another facet based on a move
-    # for pathfind,
 
 
 newCube = cube()
 
-newCube.scramble(20,newCube.cubeArr)
-newCube.printCube(newCube.cubeArr)
+tot = 0
+numIters = 10
+for i in range(numIters):
+    rslt = ""
+    newCube.scramble(20,newCube.cubeArr)
+    newCube.solveCube()
+    rslt = rslt.join(newCube.solution)
+    tot+=len(rslt)
 
-newCube.solveCube()
-
-rslt = ""
-print(newCube.scrambleMoves)
-
-rslt = rslt.join(newCube.solution)
-
-print(newCube.solution)
-print(len(rslt))
-newCube.printCube(newCube.cubeArr)
-print("\n")
-print(rslt)
-
-
-print(newCube.changeFront(["z"],["R"]))
-print(newCube.changeFront("Z","L"))
-
-
-checkNode1 = node((0,1,2),1)
-checkNode2 = node((0,0,2),1)
-checkNode3 = node((0,1,0),2)
-heap = []
-heapq.heappush(heap, checkNode1)
-heapq.heappush(heap, checkNode2)
-heapq.heappush(heap, checkNode3)
-
-print(heapq.heappop(heap).score)
-print(heapq.heappop(heap).score)
-print(heap[0].score)
+print("Average = ", tot/numIters)
 
 
 
-'''
-run = True
-while run:
-    print(newCube.cubeArr[0])
-    #print(newCube.faceArr[0].currFace)
-    print(newCube.faceArr[0].index)
-    #print(newCube.faceArr[3].neighbors)
-    val = input("input: ")
-    if val == "END":
-        run = False
-    elif val == "X":
-        newCube.turnCubeX()
-    elif val == "RX":
-        newCube.turnCubeX(False)
-    elif val == "Y":
-        newCube.turnCubeY()
-    elif val == "RY":
-        newCube.turnCubeY(False)
-    elif val == "Z":
-        newCube.turnCubeZ()
-    elif val == "RZ":
-        newCube.turnCubeZ(False)
-
-    elif val == "T":
-        newCube.faceArr[0].rotate(newCube.cubeArr)
-    elif val == "L":
-        newCube.faceArr[1].rotate(newCube.cubeArr)
-    elif val == "F":
-        newCube.faceArr[2].rotate(newCube.cubeArr)
-    elif val == "R":
-        newCube.faceArr[3].rotate(newCube.cubeArr)
-    elif val == "B":
-        newCube.faceArr[4].rotate(newCube.cubeArr)
-    elif val == "D":
-        newCube.faceArr[5].rotate(newCube.cubeArr)
-    
-    elif val == "TP":
-        newCube.faceArr[0].rotate(newCube.cubeArr, False)
-    elif val == "LP":
-        newCube.faceArr[1].rotate(newCube.cubeArr, False)
-    elif val == "FP":
-        newCube.faceArr[2].rotate(newCube.cubeArr, False)
-    elif val == "RP":
-        newCube.faceArr[3].rotate(newCube.cubeArr, False)
-    elif val == "BP":
-        newCube.faceArr[4].rotate(newCube.cubeArr, False)
-    elif val == "DP":
-        newCube.faceArr[5].rotate(newCube.cubeArr, False)
-
-    elif val == "SCRAMBLE":
-        newCube.scramble(20)
-    elif val == "RESET":
-        newCube.resetCube()
-    elif val == "TEST":
-        if newCube.edgeList[0].isSame(newCube.cubeArr,newCube.startArr):
-            print("They are the same")
-        else:
-            print("These are different")
-
-    else:
-        print("invalid")
-    newCube.printCube(newCube.cubeArr)
-    newCube.printCube(newCube.startArr)
-
-'''

@@ -1,46 +1,25 @@
-class part:
-    def __init__(self) -> None:
-        self.facets = []
-        return None
+class facet:                                                                # Every cell of the cube is called a facet, regardless of type of piece
+    def __init__(self, color) -> None:                                      # Main cube structure is occupied by these facect objects
+        self.color = color
+        self.parent = None
+        self.faces = [0]*6                                                  # This array shows all the colors that are in the parent piece that this edge is a part of
+                                                                            # Follows same structure as colorMap
 
-    #def checkSame(self, cubeCurr, cubeEnd):
-    #    for facet in self.facets
+    def isSame(self, other):
+        return self.color == other.color and self.faces == other.faces      # Two facets of different cubes can represent the same piece if the face color and faces list are the same
+
+    def isSameColor(self,other):
+        return self.color == other.color
 
 
-    def locate(self, otherPiece, cubeCurr, cubeEnd):
-        if len(self.facets)!= len(otherPiece.facets):
-            return False
+class node:                                             # Nodes are used when the graph is generated for pathfinding
+    def __init__(self,pos, score) -> None:                     # Node graph is strored in self.solveGraph map
+        self.pos = pos
+        self.changeList = dict()                        # change list maps every move to the node at the resulting location
+        self.parent = None
+        self.parentMove = ""
+        self.score = score
+
+    def __lt__(self, other):
+        return self.score < other.score
         
-        colorsCurr = []
-        colorsEnd = []
-        for idx in range(len(self.facets)):
-            facet1 = self.facets[idx]
-            facet2 = otherPiece.facets[idx]
-
-            colorsCurr.append(cubeCurr[facet1[0]][facet1[1]][facet1[2]])
-            colorsEnd.append(cubeEnd[facet2[0]][facet2[1]][facet2[2]])
-
-        return sorted(colorsCurr) == sorted(colorsEnd)
-        
-        
-
-class edge(part):
-
-    def __init__(self, index, side1, side2) -> None:
-        
-        super().__init__()
-
-        self.facets.append(side1)
-        self.facets.append(side2)
-        
-        return None
-
-class corner(part):
-    def __init__(self, index, side1, side2, side3) -> None:
-        super().__init__()
-
-        self.facets.append(side1)
-        self.facets.append(side2)
-        self.facets.append(side3)
-
-        return None

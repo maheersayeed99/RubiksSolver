@@ -10,7 +10,7 @@ class face:
         
         return None
     
-    def populateNeighbors(self):
+    def populateNeighbors(self):                                    # Hard coded to identify neighbors for rotation purposes
         match self.index:
             
             case 0:
@@ -26,10 +26,10 @@ class face:
             case 5:
                 self.neighbors = [(1,2),(2,2),(3,2),(4,2)]
 
-        self.reversedNeighbors = self.neighbors[::-1]
+        self.reversedNeighbors = self.neighbors[::-1]           # Needed for counter clockwise rotation
 
     
-    def setFacetParents(self,cube):
+    def setFacetParents(self,cube):                                 # This is done so each facet identifies with the other facets in its piece
         #center
         cube[self.index][1][1].faces[self.index]+=1
         # up edge
@@ -76,7 +76,7 @@ class face:
     #   4 5 6   4 5 6   8 5 2
     #   7 8 9   1 2 3   9 6 3
 
-    def rotateFace(self, cube, clockwise = True):
+    def rotateFace(self, cube, clockwise = True):           # in place rotation algorithm
         currFace = cube[self.index]
         if clockwise == True:
             currFace.reverse()
@@ -96,7 +96,7 @@ class face:
                 currFace[col][row], currFace[row][col]
 
     
-    def rotateSides(self,cube, clockwise = True):
+    def rotateSides(self,cube, clockwise = True):                           # Sliding window technique used
 
         path = self.neighbors if clockwise else self.reversedNeighbors
         
