@@ -1149,12 +1149,15 @@ class Cube {
                 pos: pos2d,
             }));
         }
+
+        // graph2D is a list of nodes for every single facet in the cube
+
         for (var action of actions) {
             tempcube.reset();                                       // reset cube
             tempcube.apply(action);                                 // do each of the turns
-            for (var face of tempcube.cubeletFaces) {
-                if (face.getCurrentPosition2D(this).equals(face.getStartPosition2D(this)) == false) {
-                    var originalknot = this.graph2d.find(k => k.pos.equals(face.getStartPosition2D(this)));
+            for (var face of tempcube.cubeletFaces) {   // WHAT IS THIS?
+                if (face.getCurrentPosition2D(this).equals(face.getStartPosition2D(this)) == false) {           // if the current position of face is different from the desired position of face
+                    var originalknot = this.graph2d.find(k => k.pos.equals(face.getStartPosition2D(this))); 
                     var newknot = this.graph2d.find(k => k.pos.equals(face.getCurrentPosition2D(this)));
                     originalknot.edges.push(new Edge({
                         target: newknot,
