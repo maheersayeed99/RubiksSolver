@@ -17,6 +17,8 @@ class app:
         self.boundSize = 0
         self.topLeftx = 0
         self.topLefty = 0
+        self.bottomRightx = 0
+        self.bottomRighty = 0
 
         self.orientationOffset = 50
 
@@ -37,8 +39,6 @@ class app:
         self.cannyParam2 = 0
         self.camWindow = "Camera"
         
-        self.colorMask = None
-
 
         # ORIENTATION LINES
         self.orientationLines = []
@@ -55,7 +55,24 @@ class app:
         self.populateCube()
 
         # MASKS
-        self.maskArr = [None]*5
+        self.maskArr = [None]*6
+        self.colorMask = None
+        self.currMask = 4
+
+        # NOTES
+        '''
+        White is not working at all, seems to change drastically given the time of day
+        Green is working perfectly
+        Red is working decently could be better but totally acceptable
+        Blue is having a LOT of trouble, mixing in with white and sometimes not detecting itself
+            Solution could be to darken it witha marker and also tinker with the hsl values
+        Orange works surprisingly well but not crazy reliable, might just be a tuning issue
+        Yellow works good but interesting phenonmenon with yellow/green where yellow encapsulates green but doesnt shade it, when this happens, the contour lines get confused
+            Solution to this is very simple, make the bounding box slightly smaller that the axtual box
+        
+
+        
+        '''
 
         # COORDINATES
         self.coordinates = []
@@ -71,19 +88,24 @@ class app:
 
         middleX = self.winWidth//2
         middleY = self.winHeight//2
-        self.boundSize = int(self.winHeight*0.8)
+        self.boundSize = int(self.winHeight*0.75)
         halfBoundSize = self.boundSize//2
+        lineLength = int(self.boundSize//2 * 0.5)
         self.topLeftx = middleX-halfBoundSize
         self.topLefty = middleY-halfBoundSize
+        self.bottomRightx = middleX+halfBoundSize
+        self.bottomRighty = middleY+halfBoundSize
+
+
 
         # Top Line
-        self.orientationLines.append(line(middleX-halfBoundSize, middleY-halfBoundSize, self.boundSize, 0, 5))
+        self.orientationLines.append(line(middleX-lineLength, middleY-halfBoundSize, lineLength*2 , 0, 5, colorMap["o"]))
         # Left Line
-        self.orientationLines.append(line(middleX-halfBoundSize, middleY-halfBoundSize, 0, self.boundSize, 5))
+        self.orientationLines.append(line(middleX-halfBoundSize, middleY-lineLength, 0, lineLength*2, 5, colorMap["b"]))
         # Bottom Line
-        self.orientationLines.append(line(middleX-halfBoundSize, middleY+halfBoundSize, self.boundSize, 0, 5))
+        self.orientationLines.append(line(middleX-lineLength, middleY+halfBoundSize, lineLength*2, 0, 5, colorMap["r"]))
         # Right Line
-        self.orientationLines.append(line(middleX+halfBoundSize, middleY-halfBoundSize, 0, self.boundSize, 5))
+        self.orientationLines.append(line(middleX+halfBoundSize, middleY-lineLength, 0, lineLength*2 , 5, colorMap["g"]))
         
 
     def populateFaces(self):
@@ -111,31 +133,54 @@ class app:
 
     
     def generateColorMasks(self):
-        redLower = np.array([160,100,20])
-        redUpper = np.array([179,255,255])
-        self.maskArr[0] = cv2.inRange(self.hsv,redLower,redUpper)
 
-        orangeLower = np.array([ 4,100,100])
-        orangeUpper = np.array([8,255,255])
-        self.maskArr[1] = cv2.inRange(self.hsv,orangeLower,orangeUpper)
-
-        yellowLower = np.array([15,0,0])
-        yellowUpper = np.array([36,255,255])
-        self.maskArr[2] = cv2.inRange(self.hsv,yellowLower,yellowUpper)
+        
+        whiteLower = np.array([0,0,168])
+        whiteUpper = np.array([172,111,255])
+        self.maskArr[0] = cv2.inRange(self.hsv,whiteLower,whiteUpper)
+        self.colorMask = self.maskArr[0]
 
         greenLower = np.array([36,0,0])
         greenUpper = np.array([86,255,255])
-        self.maskArr[3] = cv2.inRange(self.hsv,greenLower,greenUpper)
+        self.maskArr[1] = cv2.inRange(self.hsv,greenLower,greenUpper)
+        self.colorMask += self.maskArr[1]
+
+        redLower = np.array([160,100,20])
+        redUpper = np.array([179,255,255])
+        self.maskArr[2] = cv2.inRange(self.hsv,redLower,redUpper)
+        self.colorMask += self.maskArr[2]
 
         blueLower = np.array([110,62,62])
+        #blueLower = np.array([110,62,62])
         blueUpper = np.array([130,255,255])
-        self.maskArr[4] = cv2.inRange(self.hsv,blueLower,blueUpper)
+        self.maskArr[3] = cv2.inRange(self.hsv,blueLower,blueUpper)
+        self.colorMask += self.maskArr[3]
+
+        orangeLower = np.array([ 4,100,100])
+        orangeUpper = np.array([8,255,255])
+        self.maskArr[4] = cv2.inRange(self.hsv,orangeLower,orangeUpper)
+        self.colorMask += self.maskArr[4]
+
+        yellowLower = np.array([15,0,0])
+        yellowUpper = np.array([36,255,255])
+        self.maskArr[5] = cv2.inRange(self.hsv,yellowLower,yellowUpper)
+        self.colorMask += self.maskArr[5]
+
+        
+        
+
+        
 
 
 
     def getContours(self, dilated):
         contours, hierarchy = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        return contours
+        filteredContours = []
+        for currContour in contours:
+            area = cv2.contourArea(currContour)
+            if area > 1000 and area < 145800:
+                filteredContours.append(currContour)
+        return filteredContours
 
     
     def drawContours(self, contours, original):
@@ -166,6 +211,14 @@ class app:
                 tempY = topLefty + squareSize*row
                 self.coordinates[row-1][col-1] = (tempX,tempY)
 
+
+
+    def drawFace(self, canvas):
+        cubeFace = self.faceList[0].colorArr
+        for row in range(len(cubeFace)):
+            for col in range(len(cubeFace[0])):
+                cv2.circle(canvas, self.coordinates[row][col], 10 , colorMap[cubeFace[row][col]], -1)
+
     
     def detectColors(self):
 
@@ -187,65 +240,65 @@ class app:
             
     
     def process(self):
-        success, self.originalImage = self.cap.read()
 
-        #self.originalImage = cv2.flip(self.originalImage,1)
+        # Capture from webcam
+        success, self.originalImage = self.cap.read()               
 
-        # original image
+        # Resize image to webcam size
         self.originalImage = cv2.resize(self.originalImage, (self.winWidth, self.winHeight), interpolation= cv2.INTER_AREA)
 
-        # blurred image
-        #blurred = cv2.GaussianBlur(self.originalImage, (7,7), 1)
+        # Create mask that only fits square in the middle of the screen
+        tempMask = np.zeros(self.originalImage.shape[:2], dtype="uint8")
+        cv2.rectangle(tempMask, (self.topLeftx + 20, self.topLefty+20), (self.bottomRightx -20, self.bottomRighty-20), 255, -1)
+        
+        # Make new image that is only the square of the original image
+        squareImage = cv2.bitwise_and(self.originalImage,self.originalImage, mask = tempMask)
+        
+        # Potentially blur the image
+        blurred = cv2.GaussianBlur(squareImage, (7,7), 1)
 
 
-        # rgb image
+        # Change image to rgb image
+        rgb = cv2.cvtColor(blurred,cv2.COLOR_BGR2RGB)
 
-        rgb = cv2.cvtColor(self.originalImage,cv2.COLOR_BGR2RGB)
-
-        # hsv image
-
+        # Change image to hsv image
         self.hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
-        #self.generateColorMasks()
 
-        #kernel = np.ones((5,5))
-        #dilation = cv2.dilate(self.colorMask,kernel,iterations=1)
-        #self.contours = self.getContours(dilation)
+        # Create masks for all 6 colors
+        self.generateColorMasks()
+        
+        # Find contours of a single color
+        kernel = np.ones((5,5))
+        dilation = cv2.dilate(self.maskArr[self.currMask],kernel,iterations=1)
+        self.contours = self.getContours(dilation)
 
-
+        # Choose the image to display as the original image
         self.displayImage = self.originalImage.copy() # choose which version to display
 
     def draw(self):
 
-        #self.drawContours(self.contours, self.displayImage)
-        
+        # Draw the 4 orientation lines on the screen
         for line in self.orientationLines:
             line.draw(self.displayImage)
+
+        # Draw the face dots on the screen
+        self.drawFace(self.displayImage)
         
+        # Draw the single set of contours obtained from process (This is for debugging the color ranges)
+        self.drawContours(self.contours, self.displayImage)
+
+        # Mirror the image
+        self.displayImage = cv2.flip(self.displayImage,1)
+        
+        # Display the image in one window
         cv2.imshow(self.camWindow, self.displayImage)
         
-
+        # Create a masked view of just one color and display it on a second window
+        masked = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.maskArr[self.currMask],1))
+        cv2.imshow("Test", masked)
+        
 
     def run(self):
-        '''if cv2.waitKey(1) & 0xFF == ord('q'):
-            self.term = True
-        
-        
-        elif cv2.waitKey(1) & 0xFF == ord('e'):
-            if self.cannyParam1 < 255:
-                self.cannyParam1 += 1
-        elif cv2.waitKey(1) & 0xFF == ord('w'):
-            if self.cannyParam1 >5:
-                self.cannyParam1 -= 1
-
-        elif cv2.waitKey(1) & 0xFF == ord('d'):
-            if self.cannyParam2 < 255:
-                self.cannyParam2 += 1
-        elif cv2.waitKey(1) & 0xFF == ord('s'):
-            if self.cannyParam2 >0:
-                self.cannyParam2 -= 1'''
-
-        #print("1: ",self.cannyParam1," 2: ",self.cannyParam2)
-
 
         key = cv2.waitKey(1)
         if key == ord('q'):

@@ -1,7 +1,7 @@
 import cv2
 
 class line():
-    def __init__(self, xi, yi, deltax, deltay, thickness) -> None:
+    def __init__(self, xi, yi, deltax, deltay, thickness, color) -> None:
 
         self.xi = xi
         self.deltax = deltax
@@ -9,9 +9,9 @@ class line():
         self.deltay = deltay
         self.thickness = thickness
         
-        self.blue = 0
-        self.green = 255
-        self.red = 255
+        self.blue = color[0]
+        self.green = color[1]
+        self.red = color[2]
         
 
     
