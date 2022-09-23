@@ -1,7 +1,7 @@
 import cv2
-from databases import *
+from detectionDatabases import *
 
-class face():
+class detectFace():
 
     def __init__(self,index) -> None:
 

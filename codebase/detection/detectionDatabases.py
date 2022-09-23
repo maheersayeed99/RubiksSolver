@@ -1,6 +1,6 @@
 
 
-colorMap = {
+bgrMap = {
     "w" : (255,255,255),
     "g" : (50,205,50),
     "r" : (46,46,255),
@@ -11,4 +11,4 @@ colorMap = {
 }
 indexArr = ["w","g","r","b","o","y"]
 
-orientationLineChanges = ["obrg","wryo","wbyg","woyr","wgyb","rbog"]
+orientationLineChanges = ["ogrb","woyr","wgyb","wryo","wbyg","rgob"]

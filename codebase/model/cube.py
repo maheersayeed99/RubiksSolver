@@ -464,6 +464,8 @@ class cube:
         #print("top corners done")
         self.solveYellowEdges()
         #print("cube done")
+
+        self.printCube(self.cubeArr)
         self.solutionString = self.solutionString.join(self.solution)
         self.removeDuplicates(self.solutionString)
 
