@@ -3,6 +3,7 @@ import numpy as np
 from line import *
 from detectFace import *
 from detectionDatabases import *
+import time
 
 
 
@@ -14,13 +15,14 @@ class app:
         
         self.winWidth = 720
         self.winHeight = int((1080/1920)*self.winWidth)
-        self.boundSize = 0
+        self.boundSize = int(self.winHeight*0.75)
         self.topLeftx = 0
         self.topLefty = 0
         self.bottomRightx = 0
         self.bottomRighty = 0
-
+        self.maskOffset = 20
         self.orientationOffset = 50
+        self.regionArea = (self.boundSize- (2*self.maskOffset))**2
 
 
         self.cap = cv2.VideoCapture(0)
@@ -34,9 +36,6 @@ class app:
         self.dilation = None
         self.contours = None
 
-
-        self.cannyParam1 = 110
-        self.cannyParam2 = 130
         self.camWindow = "Camera"
         
 
@@ -57,7 +56,9 @@ class app:
         # MASKS
         self.maskArr = [None]*6
         self.colorMask = None
-        self.currMask = 3
+        self.hsvGroup = [nighttimeHSV, daytimeHSV]
+        self.hsvArray = self.hsvGroup[0]
+        
 
         # NOTES
         '''
@@ -80,15 +81,21 @@ class app:
         print(self.coordinates)
 
 
+        # AUTO DETECT
+        self.checking = False
+        self.refTime = 0
+        self.detectTolerance = 0.95
 
-        return
+        self.currMask = 2
+        self.cannyParam1 = 36
+        self.cannyParam2 = 86
+
 
 
     def populateLines(self):
 
         middleX = self.winWidth//2
         middleY = self.winHeight//2
-        self.boundSize = int(self.winHeight*0.75)
         halfBoundSize = self.boundSize//2
         lineLength = int(self.boundSize//2 * 0.5)
         self.topLeftx = middleX-halfBoundSize
@@ -134,46 +141,52 @@ class app:
     def generateColorMasks(self):
 
         
-        whiteLower = np.array([0,0,168])
-        whiteUpper = np.array([172,111,255])
+        whiteLower = np.array(self.hsvArray[0][0])
+        whiteUpper = np.array(self.hsvArray[0][1])
         self.maskArr[0] = cv2.inRange(self.hsv,whiteLower,whiteUpper)
         self.colorMask = self.maskArr[0]
 
-        greenLower = np.array([36,0,0])
-        greenUpper = np.array([86,255,255])
+        greenLower = np.array(self.hsvArray[1][0])
+        greenUpper = np.array(self.hsvArray[1][1])
         self.maskArr[1] = cv2.inRange(self.hsv,greenLower,greenUpper)
         self.colorMask += self.maskArr[1]
 
-        redLower = np.array([160,100,20])
-        redUpper = np.array([179,255,255])
+        '''redLower = np.array(self.hsvArray[2][0])
+        redUpper = np.array(self.hsvArray[2][1])
         self.maskArr[2] = cv2.inRange(self.hsv,redLower,redUpper)
+        self.colorMask += self.maskArr[2]'''
+
+        redLower = np.array((0,50,50))
+        redUpper = np.array((10,255,255))
+        temp1 = cv2.inRange(self.hsv,redLower,redUpper)
+        redLower = np.array((170,50,50))
+        redUpper = np.array((180,255,255))
+        temp2 = cv2.inRange(self.hsv,redLower,redUpper)
+        self.maskArr[2] = temp1+temp2#q-self.maskArr[4]
         self.colorMask += self.maskArr[2]
 
-        #blueLower = np.array([110,62,62])
-        #blueUpper = np.array([130,255,255])
-        blueLower = np.array([96,62,62])
-        blueUpper = np.array([130,255,255])
+        blueLower = np.array(self.hsvArray[3][0])
+        blueUpper = np.array(self.hsvArray[3][1])
         self.maskArr[3] = cv2.inRange(self.hsv,blueLower,blueUpper)
         self.colorMask += self.maskArr[3]
 
-        orangeLower = np.array([ 4,100,100])
-        orangeUpper = np.array([8,255,255])
+        orangeLower = np.array(self.hsvArray[4][0])
+        orangeUpper = np.array(self.hsvArray[4][1])
         self.maskArr[4] = cv2.inRange(self.hsv,orangeLower,orangeUpper)
         self.colorMask += self.maskArr[4]
 
-        yellowLower = np.array([15,0,0])
-        yellowUpper = np.array([36,255,255])
+        
+        yellowLower = np.array(self.hsvArray[5][0])
+        yellowUpper = np.array(self.hsvArray[5][1])
         self.maskArr[5] = cv2.inRange(self.hsv,yellowLower,yellowUpper)
         self.colorMask += self.maskArr[5]
 
+        '''yellowLower = np.array((self.cannyParam1,50,0))
+        yellowUpper = np.array((self.cannyParam2,255,255))
+        self.maskArr[1] = cv2.inRange(self.hsv,yellowLower,yellowUpper)
+        self.colorMask += self.maskArr[5]'''
+        
         self.maskArr[0] = self.colorMask
-
-
-        
-        
-
-        
-
 
 
     def getContours(self, dilated):
@@ -223,6 +236,31 @@ class app:
                 cv2.circle(canvas, self.coordinates[row][col], 10 , bgrMap[cubeFace[row][col]], -1)
 
     
+    def getTotalArea(self):
+        return cv2.contourArea(self.contours[0])
+        #for contour in self.contours:
+        #    rslt+=cv2.contourArea(contour)
+        return rslt
+
+
+    def checkForCube(self):
+
+        print(self.getTotalArea()," ",self.regionArea)
+
+        if self.getTotalArea() > (self.detectTolerance * self.regionArea) and self.checking == False:
+            self.refTime = time.time()
+            self.checking = True
+        
+        elif self.getTotalArea() > self.detectTolerance * self.regionArea:
+            currTime = time.time() - self.refTime
+            if currTime > 5:
+                self.detectColors()
+                self.checking = False
+        else:
+            self.checking = False
+
+
+
     def detectColors(self):
 
         self.generateColorMasks()
@@ -252,7 +290,7 @@ class app:
 
         # Create mask that only fits square in the middle of the screen
         tempMask = np.zeros(self.originalImage.shape[:2], dtype="uint8")
-        cv2.rectangle(tempMask, (self.topLeftx + 20, self.topLefty+20), (self.bottomRightx -20, self.bottomRighty-20), 255, -1)
+        cv2.rectangle(tempMask, (self.topLeftx + self.maskOffset, self.topLefty+self.maskOffset), (self.bottomRightx -self.maskOffset, self.bottomRighty-self.maskOffset), 255, -1)
         
         # Make new image that is only the square of the original image
         squareImage = cv2.bitwise_and(self.originalImage,self.originalImage, mask = tempMask)
@@ -261,8 +299,6 @@ class app:
         blurred = cv2.GaussianBlur(squareImage, (7,7), 1)
 
         
-
-
         # Change image to rgb image
         rgb = cv2.cvtColor(blurred,cv2.COLOR_BGR2RGB)
 
@@ -274,8 +310,8 @@ class app:
         
         # Find contours of a single color
         kernel = np.ones((5,5))
-        dilation = cv2.dilate(self.maskArr[self.currMask],kernel,iterations=1)
-        #dilation = cv2.dilate(self.colorMask,kernel,iterations=1)
+        #dilation = cv2.dilate(self.maskArr[self.currMask],kernel,iterations=1)
+        dilation = cv2.dilate(self.colorMask,kernel,iterations=1)
         self.contours = self.getContours(dilation)
 
         # Choose the image to display as the original image
@@ -300,12 +336,14 @@ class app:
         cv2.imshow(self.camWindow, self.displayImage)
         
         # Create a masked view of just one color and display it on a second window
-        masked = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.maskArr[self.currMask],1))
-        #masked = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.colorMask,1))
+        #masked = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.maskArr[self.currMask],1))
+        masked = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.colorMask,1))
         cv2.imshow("Test", masked)
         
 
     def run(self):
+
+        self.checkForCube()
 
         key = cv2.waitKey(1)
         if key == ord('q'):
@@ -333,6 +371,10 @@ class app:
             print(self.cannyParam1, " ", self.cannyParam2)
         elif key == ord('m'):
             self.generateSolution()
+
+        elif key == ord('n'):
+            self.hsvGroup.append(self.hsvGroup.pop())
+            self.hsvArray = self.hsvGroup[0]
             
 
     def terminate(self) -> bool:
