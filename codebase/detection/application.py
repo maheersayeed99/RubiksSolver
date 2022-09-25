@@ -10,9 +10,11 @@ import time
 class app:
     def __init__(self, cube) -> None:
         
+        # Cube taken from cube class
         self.cube = cube
         self.term = False
         
+        # Draw dimensions and ares
         self.winWidth = 720
         self.winHeight = int((1080/1920)*self.winWidth)
         self.boundSize = int(self.winHeight*0.75)
@@ -24,17 +26,18 @@ class app:
         self.orientationOffset = 50
         self.regionArea = (self.boundSize- (2*self.maskOffset))**2
 
-
+        # Initialize webcam video 
         self.cap = cv2.VideoCapture(0)
         self.cap.set(3,self.winWidth)
         self.cap.set(4,self.winHeight)
 
-
+        # All canvases
         self.originalImage = None
         self.displayImage = None
         self.hsv = None
         self.dilation = None
         self.contours = None
+        self.dilation = None
 
         self.camWindow = "Camera"
         
@@ -85,14 +88,15 @@ class app:
         self.checking = False
         self.refTime = 0
         self.detectTolerance = 0.95
+        self.solveTime = 3 #second
 
         self.currMask = 2
-        self.cannyParam1 = 36
-        self.cannyParam2 = 86
+        self.cannyParam1 = 116
+        self.cannyParam2 = 203
 
 
 
-    def populateLines(self):
+    def populateLines(self):                    # Generates the 4 orientation lines
 
         middleX = self.winWidth//2
         middleY = self.winHeight//2
@@ -114,31 +118,31 @@ class app:
         self.orientationLines.append(line(middleX+halfBoundSize, middleY-lineLength, 0, lineLength*2 , 5, bgrMap["b"]))
         
 
-    def populateFaces(self):
+    def populateFaces(self):                        # Generates the 6 detection faces
         for i in range(6):
             self.faceList.append(detectFace(i))
 
 
-    def changeMode(self, left = True):
+    def changeMode(self, left = True):                      # Changes which face is active
         if left:
             self.faceList.append(self.faceList.pop(0))
         else:
             self.faceList.insert(0, self.faceList.pop())
 
-        colorChange = orientationLineChanges[self.faceList[0].index]
+        colorChange = orientationLineChanges[self.faceList[0].index]                # Change orientation line colors
 
         for index in range(len(self.orientationLines)):
             self.orientationLines[index].changeColor(bgrMap[colorChange[index]])
 
 
-    def populateCube(self):
+    def populateCube(self):                 # Generate result cube which will be populated with detected colors
         for i in range(6):
             self.cubeArr.append([["k","k","k"], ["k","k","k"], ["k","k","k"]])
 
 
 
     
-    def generateColorMasks(self):
+    def generateColorMasks(self):               # Create 6 color masks with threshold data from databases.py
 
         
         whiteLower = np.array(self.hsvArray[0][0])
@@ -189,28 +193,28 @@ class app:
         self.maskArr[0] = self.colorMask
 
 
-    def getContours(self, dilated):
+    def getContours(self, dilated):                 # Get all contours in a given mask
         contours, hierarchy = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         filteredContours = []
         for currContour in contours:
             area = cv2.contourArea(currContour)
-            if area > 1000 and area < 145800:
+            if area > 0 and area < 145800:
                 filteredContours.append(currContour)
         return filteredContours
 
     
-    def drawContours(self, contours, original):
+    def drawContours(self, contours, canvas):               # Draw contours on the screen
         for currContour in contours:
             area = cv2.contourArea(currContour)
-            if area > 1000:
-                cv2.drawContours(original, currContour, -1, (255,0,255), 2)
+            if area > 0:
+                cv2.drawContours(canvas, currContour, -1, (208,224,64), 2)      # Turquoise
                 #perimeter = cv2.arcLength(currContour, True)
                 #approximate  = cv2.approxPolyDP(currContour,0.02*perimeter, True)
                 #x, y, w, h = cv2.boundingRect(approximate)
-                #cv2.rectangle(original, (x,y),(x+w,y+h), (255,255,255), 2)
+                #cv2.rectangle(canvas, (x,y),(x+w,y+h), (255,255,255), 2)
 
     
-    def generateCoordinates(self):
+    def generateCoordinates(self):          # Create a 2d array of coordinates that marks the center of each orientation square
 
         for i in range(3):
             self.coordinates.append([[0,0,0],[0,0,0],[0,0,0]])
@@ -229,23 +233,26 @@ class app:
 
 
 
-    def drawFace(self, canvas):
+    def drawFace(self, canvas):                         # Draw colored circles at the coordinate points based on the colors in the active face
         cubeFace = self.faceList[0].colorArr
         for row in range(len(cubeFace)):
             for col in range(len(cubeFace[0])):
                 cv2.circle(canvas, self.coordinates[row][col], 10 , bgrMap[cubeFace[row][col]], -1)
 
     
-    def getTotalArea(self):
-        return cv2.contourArea(self.contours[0])
+    def getTotalArea(self):                             # This is used during auto detection of face color
+        if len(self.contours) == 0:
+            return 0
+        else:
+            return cv2.contourArea(self.contours[0])
         #for contour in self.contours:
         #    rslt+=cv2.contourArea(contour)
         return rslt
 
 
-    def checkForCube(self):
+    def checkForCube(self):         # Function that checks if a cube is on screen, and runs detect color function if it is on screen longer than 3 seconds
 
-        print(self.getTotalArea()," ",self.regionArea)
+        #print(self.getTotalArea()," ",self.regionArea)
 
         if self.getTotalArea() > (self.detectTolerance * self.regionArea) and self.checking == False:
             self.refTime = time.time()
@@ -253,7 +260,7 @@ class app:
         
         elif self.getTotalArea() > self.detectTolerance * self.regionArea:
             currTime = time.time() - self.refTime
-            if currTime > 5:
+            if currTime > self.solveTime:
                 self.detectColors()
                 self.checking = False
         else:
@@ -261,7 +268,7 @@ class app:
 
 
 
-    def detectColors(self):
+    def detectColors(self):                             # MAIN FUNCTION, This uses the color masks to check the color of each detections square
 
         self.generateColorMasks()
         for index in range(len(self.maskArr)):
@@ -274,13 +281,19 @@ class app:
         self.cubeArr[self.faceList[0].index] = self.faceList[0].colorArr
 
 
-    def generateSolution(self):
+    def generateSolution(self):                                     # Once self.cubeArr is copmpletely populated, this function solves the cube and prints the solition to the terminal
         self.cube.manualScramble(self.cube.cubeArr, self.cubeArr)
         self.cube.solveCube()
         print(self.cube.solution)
 
     
-    def process(self):
+
+
+
+
+    # FUNCTIONS THAT RUN THE ENTIRE TIME
+
+    def process(self):          # This function is mainly used to check whether a cube is on screen
 
         # Capture from webcam
         success, self.originalImage = self.cap.read()               
@@ -298,6 +311,12 @@ class app:
         # Potentially blur the image
         blurred = cv2.GaussianBlur(squareImage, (7,7), 1)
 
+        # Potentially gray image
+        gray = cv2.cvtColor(blurred, cv2.COLOR_BGR2GRAY)
+
+        # Potentially Canny
+        canny = cv2.Canny(gray, self.cannyParam1, self.cannyParam2)
+
         
         # Change image to rgb image
         rgb = cv2.cvtColor(blurred,cv2.COLOR_BGR2RGB)
@@ -311,13 +330,18 @@ class app:
         # Find contours of a single color
         kernel = np.ones((5,5))
         #dilation = cv2.dilate(self.maskArr[self.currMask],kernel,iterations=1)
-        dilation = cv2.dilate(self.colorMask,kernel,iterations=1)
-        self.contours = self.getContours(dilation)
+        #dilation = cv2.dilate(self.colorMask,kernel,iterations=1)
+        self.dilation = cv2.dilate(canny,kernel,iterations=2)
+        self.contours = self.getContours(self.dilation)
 
         # Choose the image to display as the original image
         self.displayImage = self.originalImage.copy() # choose which version to display
 
-    def draw(self):
+        self.checkForCube()         
+
+    
+    
+    def draw(self):     # Main draw function
 
         # Draw the 4 orientation lines on the screen
         for line in self.orientationLines:
@@ -337,51 +361,45 @@ class app:
         
         # Create a masked view of just one color and display it on a second window
         #masked = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.maskArr[self.currMask],1))
-        masked = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.colorMask,1))
-        cv2.imshow("Test", masked)
+        #masked = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.colorMask,1))
+        #cv2.imshow("Test", masked)
+        #cv2.imshow("Test", self.dilation)
         
 
-    def run(self):
-
-        self.checkForCube()
+    def run(self):          # User Input
 
         key = cv2.waitKey(1)
-        if key == ord('q'):
+
+        if key == ord('q'):         # End
             self.term = True
-        elif key == ord('r'):
+        elif key == ord('r'):       # Next Face
             self.changeMode()
             print(self.faceList[0].index)
-        elif key == ord('l'):
+        elif key == ord('l'):       # Previous Face
             self.changeMode(False)
             print(self.faceList[0].index)
-        elif key == ord('s'):
+        elif key == ord('s'):       # Detect Colors
             self.detectColors()
-        elif key == ord('z'):
+        elif key == ord('z'):       # Lower Sensitivity 1
             self.cannyParam1-=1
             print(self.cannyParam1, " ", self.cannyParam2)
-        elif key == ord('x'):
+        elif key == ord('x'):       # Increase Sensitivity 1
             self.cannyParam1+=1
             print(self.cannyParam1, " ", self.cannyParam2)
 
-        elif key == ord('v'):
+        elif key == ord('v'):       # Increase Sensitivity 2
             self.cannyParam2+=1
             print(self.cannyParam1, " ", self.cannyParam2)
-        elif key == ord('c'):
+        elif key == ord('c'):       # Lower Sensitivity 2
             self.cannyParam2-=1
             print(self.cannyParam1, " ", self.cannyParam2)
-        elif key == ord('m'):
+        elif key == ord('m'):       # Solve (Only if all faces are occupied!)
             self.generateSolution()
 
-        elif key == ord('n'):
+        elif key == ord('n'):       # Change Threshold Group
             self.hsvGroup.append(self.hsvGroup.pop())
             self.hsvArray = self.hsvGroup[0]
             
 
-    def terminate(self) -> bool:
+    def terminate(self) -> bool:        # End application
         return self.term
-
-
-
-
-
-

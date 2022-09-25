@@ -1,5 +1,5 @@
 
-
+# Map used to get bgr values of color strings
 bgrMap = {
     "w" : (255,255,255),
     "g" : (50,205,50),
@@ -9,11 +9,14 @@ bgrMap = {
     "y" : (0,215,255),
     "k" : (0,0,0)
 }
+
+# Map used to determine the color of each face
 indexArr = ["w","g","r","b","o","y"]
 
+# Map used to color the orientation lines
 orientationLineChanges = ["ogrb","woyr","wgyb","wryo","wbyg","rgob"]
 
-
+# HSV upper and lower thresholds
 # Daytime
 
 daytimeHSV = [

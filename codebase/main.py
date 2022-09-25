@@ -15,4 +15,3 @@ while not myApp.terminate():
     myApp.run()
     myApp.draw()
 
-
