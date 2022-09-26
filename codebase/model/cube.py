@@ -469,6 +469,11 @@ class cube:
         self.solutionString = self.solutionString.join(self.solution)
         self.removeDuplicates(self.solutionString)
 
+        print("Solution: ")
+        print(*self.solution)
+        print("\n")
+        print("Solution Length: ", len(self.solution))
+
 
 
 

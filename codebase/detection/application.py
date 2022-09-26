@@ -284,11 +284,7 @@ class app:
     def generateSolution(self):                                     # Once self.cubeArr is copmpletely populated, this function solves the cube and prints the solition to the terminal
         self.cube.manualScramble(self.cube.cubeArr, self.cubeArr)
         self.cube.solveCube()
-        print(self.cube.solution)
-
-    
-
-
+        
 
 
     # FUNCTIONS THAT RUN THE ENTIRE TIME

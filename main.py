@@ -1,7 +1,7 @@
 import sys
 
-sys.path.append('./model')
-sys.path.append('./detection')
+sys.path.append('./codebase/model')
+sys.path.append('./codebase/detection')
 
 from cube import *
 from application import *
