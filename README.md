@@ -13,8 +13,7 @@ In order to orient the cube properly, use the colors of the bounding box walls. 
 If the cube is held correctly for three seconds, the program will automatically detects the colors of the face.
 Rotate through all six faces correctly to scan the whole cube before pressing m to solve
 
-![Depth First Search with 125 X 250 Maze](https://github.com/maheersayeed99/SearchVisualizer/blob/main/images/Screen%20Shot%202022-06-23%20at%2010.03.54%20PM.png)
-
+![Depth First Search with 125 X 250 Maze](https://github.com/maheersayeed99/RubiksSolver/blob/main/pictures/Main%20Page.png)
 
 ## Controls
 
