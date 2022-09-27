@@ -356,9 +356,13 @@ class app:
         cv2.imshow(self.camWindow, self.displayImage)
         
         # Create a masked view of just one color and display it on a second window
-        #masked = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.maskArr[self.currMask],1))
+        masked = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.maskArr[1],1))
         #masked = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.colorMask,1))
-        #cv2.imshow("Test", masked)
+        cv2.imshow("Test", masked)
+        #cv2.imshow("Test", self.dilation)
+
+        masked2 = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.maskArr[5],1))
+        cv2.imshow("Test2", masked2)
         #cv2.imshow("Test", self.dilation)
         
 

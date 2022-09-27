@@ -204,6 +204,9 @@ class cube:
             self.manualScrambleFace(currFace,cube,inputCube[currFace.index])
         for currFace in self.faceArr:
             currFace.setFacetParents(cube)
+        
+        self.printCube(self.cubeArr)
+        
     
     
     def manualScrambleFace(self, currFace, cube, inputFace) -> None:             # Manual scramble
@@ -261,8 +264,8 @@ class cube:
                             newPos = self.findPiece((currFace,row,col), self.cubeArr, tempCube)                 # if not get the two nodes from the graph
                             currentNode = self.solveGraph[(currFace,row,col)]
                             targetNode = self.solveGraph[newPos]
-                            #newChange = change(move, targetNode)                                                # make a change object in the first node whose target is the second node
-                            currentNode.changeList[move] = targetNode                                            # add change object to the first nodes change map
+                            #newChange = change(move, targetNode)                               # make a change object in the first node whose target is the second node
+                            currentNode.changeList[move] = targetNode                           # add change object to the first nodes change map
 
 
             self.reverseMove(move,tempCube)                                             # reverse the current move
@@ -769,8 +772,6 @@ class cube:
 
         self.solution = rsltList
         return rsltList
-
-
 
 
 
