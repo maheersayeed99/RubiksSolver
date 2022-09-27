@@ -16,10 +16,10 @@ Rotate through all six faces correctly to scan the whole cube before pressing m 
 
 ## Controls
 
-`R` moves to the next cube face
-`L` moves to the previous cube state
-`Z` lowers contour detections sensitivity
-`X` increases contour detection sensitivity
-`M` solves the cube and returns the solution at the terminal, only if all 6 faces are scanned properly
-`N` changes the color thresholds between daytime and nighttime tunings
-`S` Detects current colors (use if auto detect malfunctions)
+`R` moves to the next cube face  
+`L` moves to the previous cube state  
+`Z` lowers contour detections sensitivity  
+`X` increases contour detection sensitivity  
+`M` solves the cube and returns the solution at the terminal, only if all 6 faces are scanned properly  
+`N` changes the color thresholds between daytime and nighttime tunings  
+`S` Detects current colors (use if auto detect malfunctions)  
