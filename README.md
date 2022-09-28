@@ -13,7 +13,17 @@ In order to orient the cube properly, use the colors of the bounding box walls. 
 If the cube is held correctly for three seconds, the program will automatically detects the colors of the face.
 Rotate through all six faces correctly to scan the whole cube before pressing m to solve
 
-![Depth First Search with 125 X 250 Maze](https://github.com/maheersayeed99/RubiksSolver/blob/main/pictures/Main%20Page.png)
+![Depth First Search with 125 X 250 Maze](https://github.com/maheersayeed99/RubiksSolver/blob/main/pictures/Main%20Page.png)  
+
+The moves that will solve the cube are printed on the terminal. Lower case letters mean a counter clocwise rotation and upper case letters mean a clockwise rotation.  
+
+U/u = top   = White  
+L/l = left  = Green  
+F/f = front = Red  
+R/r = right = Blue  
+B/b = back  = Orange  
+D/d = down  = Yellow
+
 
 ## Controls
 
