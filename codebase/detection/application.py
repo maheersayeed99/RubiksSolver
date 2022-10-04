@@ -34,6 +34,7 @@ class app:
         # All canvases
         self.originalImage = None
         self.displayImage = None
+        self.rgb = None
         self.hsv = None
         self.dilation = None
         self.contours = None
@@ -81,7 +82,6 @@ class app:
         # COORDINATES
         self.coordinates = []
         self.generateCoordinates()
-        print(self.coordinates)
 
 
         # AUTO DETECT
@@ -139,7 +139,10 @@ class app:
         for i in range(6):
             self.cubeArr.append([["k","k","k"], ["k","k","k"], ["k","k","k"]])
 
+    
 
+
+    #########################################################################################################
 
     
     def generateColorMasks(self):               # Create 6 color masks with threshold data from databases.py
@@ -261,12 +264,13 @@ class app:
         elif self.getTotalArea() > self.detectTolerance * self.regionArea:
             currTime = time.time() - self.refTime
             if currTime > self.solveTime:
-                self.detectColors()
+                #self.detectColors()
                 self.checking = False
         else:
             self.checking = False
 
 
+    #########################################################################################################
 
     def detectColors(self):                             # MAIN FUNCTION, This uses the color masks to check the color of each detections square
 
@@ -279,6 +283,19 @@ class app:
 
         print(self.faceList[0].colorArr)
         self.cubeArr[self.faceList[0].index] = self.faceList[0].colorArr
+        #print(self.coordinates)
+
+        '''currX = self.coordinates[0][0][0]
+        currY = self.coordinates[0][0][1]
+        offset = 10
+        cropped = self.displayImage[(currY-offset):(currY+offset), (currX-offset):(currX+offset)]
+        cv2.imshow("test", cropped)'''
+
+
+
+
+        #self.faceList[0].findDominantColor(self.coordinates, self.displayImage)
+        #print(self.faceList[0].bgrArr)
 
 
     def generateSolution(self):                                     # Once self.cubeArr is copmpletely populated, this function solves the cube and prints the solition to the terminal
@@ -315,10 +332,10 @@ class app:
 
         
         # Change image to rgb image
-        rgb = cv2.cvtColor(blurred,cv2.COLOR_BGR2RGB)
+        self.rgb = cv2.cvtColor(blurred,cv2.COLOR_BGR2RGB)
 
         # Change image to hsv image
-        self.hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
+        self.hsv = cv2.cvtColor(self.rgb, cv2.COLOR_RGB2HSV)
 
         # Create masks for all 6 colors
         self.generateColorMasks()
@@ -356,13 +373,13 @@ class app:
         cv2.imshow(self.camWindow, self.displayImage)
         
         # Create a masked view of just one color and display it on a second window
-        masked = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.maskArr[1],1))
+        #masked = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.maskArr[1],1))
         #masked = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.colorMask,1))
-        cv2.imshow("Test", masked)
+        #cv2.imshow("Test", masked)
         #cv2.imshow("Test", self.dilation)
 
-        masked2 = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.maskArr[5],1))
-        cv2.imshow("Test2", masked2)
+        #masked2 = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.maskArr[5],1))
+        #cv2.imshow("Test2", masked2)
         #cv2.imshow("Test", self.dilation)
         
 

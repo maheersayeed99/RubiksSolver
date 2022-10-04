@@ -7,7 +7,7 @@ from databases import *
 import random
 import copy
 import heapq
-
+import time
 
 
 
@@ -468,7 +468,7 @@ class cube:
         self.solveYellowEdges()
         #print("cube done")
 
-        self.printCube(self.cubeArr)
+        #self.printCube(self.cubeArr)
         self.solutionString = self.solutionString.join(self.solution)
         self.removeDuplicates(self.solutionString)
 
@@ -775,5 +775,17 @@ class cube:
 
 
 
+newCube = cube()
+newCube.scramble(20,newCube.cubeArr)
+start = time.time()
 
+
+
+newCube.solveCube()
+end = time.time()
+
+
+
+print(end-start)
+print(newCube.solutionLength)
 
