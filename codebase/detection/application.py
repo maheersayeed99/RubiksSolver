@@ -16,7 +16,8 @@ class app:
         
         # Draw dimensions and ares
         self.winWidth = 720
-        self.winHeight = int((1080/1920)*self.winWidth)
+        self.winRealHeight = int((1080/1920)*self.winWidth)
+        self.winHeight = self.winRealHeight-100
         self.boundSize = int(self.winHeight*0.75)
         self.topLeftx = 0
         self.topLefty = 0
@@ -29,7 +30,9 @@ class app:
         # Initialize webcam video 
         self.cap = cv2.VideoCapture(0)
         self.cap.set(3,self.winWidth)
-        self.cap.set(4,self.winHeight)
+        self.cap.set(4,self.winRealHeight)
+
+        
 
         # All canvases
         self.originalImage = None
@@ -86,9 +89,11 @@ class app:
 
         # AUTO DETECT
         self.checking = False
+        self.showing = False
         self.refTime = 0
         self.detectTolerance = 0.95
         self.solveTime = 3 #second
+        self.showTime = self.solveTime + 2
 
         self.currMask = 2
         self.cannyParam1 = 116
@@ -207,7 +212,8 @@ class app:
         for currContour in contours:
             area = cv2.contourArea(currContour)
             if area > 0:
-                cv2.drawContours(canvas, currContour, -1, (208,224,64), 2)      # Turquoise
+                thickness = int((1.5*area/self.regionArea)*5)
+                cv2.drawContours(canvas, currContour, -1, (208,224,64), thickness)      # Turquoise
                 #perimeter = cv2.arcLength(currContour, True)
                 #approximate  = cv2.approxPolyDP(currContour,0.02*perimeter, True)
                 #x, y, w, h = cv2.boundingRect(approximate)
@@ -254,15 +260,23 @@ class app:
 
         #print(self.getTotalArea()," ",self.regionArea)
 
-        if self.getTotalArea() > (self.detectTolerance * self.regionArea) and self.checking == False:
+        if self.getTotalArea() > (self.detectTolerance * self.regionArea) and self.checking == False and self.showing == False:
             self.refTime = time.time()
             self.checking = True
         
+        elif self.showing == True:
+            currTime = time.time() - self.refTime
+            if currTime > self.showTime:
+                self.changeMode()
+                self.showing = False
+
         elif self.getTotalArea() > self.detectTolerance * self.regionArea:
             currTime = time.time() - self.refTime
             if currTime > self.solveTime:
                 self.detectColors()
                 self.checking = False
+                self.showing = True
+                        
         else:
             self.checking = False
 
@@ -284,7 +298,33 @@ class app:
     def generateSolution(self):                                     # Once self.cubeArr is copmpletely populated, this function solves the cube and prints the solition to the terminal
         self.cube.manualScramble(self.cube.cubeArr, self.cubeArr)
         self.cube.solveCube()
+
+
+    def drawSolution(self):
+
         
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        fontScale = 0.6
+        color = (250, 250, 250)
+        thickness = 2
+
+        lines = []
+        maxLen = len(self.cube.screenString)
+        increment = 62
+        start = 0
+        end = increment
+        while maxLen>increment:
+            lines.append(self.cube.screenString[start:end])
+            start += increment
+            end += increment
+            maxLen -= increment
+        lines.append(self.cube.screenString[start:])
+        
+        locIncrement = 0
+        for line in lines:
+            location = (30, self.winHeight + locIncrement)
+            self.displayImage = cv2.putText(self.displayImage, line , location , font, fontScale, color, thickness, cv2.LINE_AA, False)
+            locIncrement += 25
 
 
     # FUNCTIONS THAT RUN THE ENTIRE TIME
@@ -295,7 +335,7 @@ class app:
         success, self.originalImage = self.cap.read()               
 
         # Resize image to webcam size
-        self.originalImage = cv2.resize(self.originalImage, (self.winWidth, self.winHeight), interpolation= cv2.INTER_AREA)
+        self.originalImage = cv2.resize(self.originalImage, (self.winWidth, self.winRealHeight), interpolation= cv2.INTER_AREA)
 
         # Create mask that only fits square in the middle of the screen
         tempMask = np.zeros(self.originalImage.shape[:2], dtype="uint8")
@@ -351,18 +391,28 @@ class app:
 
         # Mirror the image
         self.displayImage = cv2.flip(self.displayImage,1)
+
+        self.drawSolution()
         
         # Display the image in one window
+        #whiteCanvas = np.zeros([100,self.winWidth])
+        #newImage = cv2.bitwise_and(whiteCanvas, self.displayImage)
+        #self.displayImage = newImage
+        
+        #newImage = cv2.vconcat([self.displayImage, whiteCanvas])
+        
         cv2.imshow(self.camWindow, self.displayImage)
         
+        
+        
         # Create a masked view of just one color and display it on a second window
-        masked = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.maskArr[1],1))
+        #masked = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.maskArr[1],1))
         #masked = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.colorMask,1))
-        cv2.imshow("Test", masked)
+        #cv2.imshow("Test", masked)
         #cv2.imshow("Test", self.dilation)
 
-        masked2 = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.maskArr[5],1))
-        cv2.imshow("Test2", masked2)
+        #masked2 = cv2.bitwise_and(self.displayImage, self.displayImage, mask = cv2.flip(self.maskArr[5],1))
+        #cv2.imshow("Test2", masked2)
         #cv2.imshow("Test", self.dilation)
         
 

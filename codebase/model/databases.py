@@ -54,9 +54,9 @@ yellowCrossStandard = ["FDLdlf","FLDldf"]
 yellowCrossAdditional = ["D","d"]
 yellowFaceStandard = ["LDlDLDDl"]
 yellowFaceAdditional = ["D","d"]
-yellowCornersStandard = ["lFlBBLflBBLL"]
+yellowCornersStandard = ["lFlBBLflBBLL", "LLBBLFlBBLfL"]#,"LLUbDbdBuLLfDF" "RRDbUbuBdRRfUF"]
 yellowCornersAdditional = ["D","d"]
-yellowEdgesStandard = ["RRdBfRRbFdRR"]
+yellowEdgesStandard = ["RRdBfRRbFdRR", "bUbububUBUBB"]
 
 # This map is used to initialize face colors when the cube is first made
 indexMap = {"w" : 0,

@@ -24,6 +24,7 @@ class cube:
         self.solution = []                                              # Stores solution
         self.solutionString = ""
         self.solutionLength = 0
+        self.screenString = "D bb dd rr ll F l D r d RR D r b d B D l d L d f d F l d L D B D b d r d R D F D f R D r d b d B D l d L D B D b f d F D L D l R F D f d r L D B d b l dd B D b D B DD b LL BB L F l BB L f L RR d B f RR b F d RR"
         
         self.solveGraph = dict()                                        # Graph used for backtracking
         self.initializeGraph()
@@ -470,10 +471,13 @@ class cube:
 
         self.printCube(self.cubeArr)
         self.solutionString = self.solutionString.join(self.solution)
-        self.removeDuplicates(self.solutionString)
+        self.solution = self.processMoves(self.solutionString)
+        self.solutionLength = len(self.solution)
 
         print("Solution: ")
         print(*self.solution)
+        self.screenString = " "
+        self.screenString = self.screenString.join(self.solution)
         print("\n")
         print("Solution Length: ", len(self.solution))
 
@@ -744,6 +748,54 @@ class cube:
 
         return
 
+    
+    def processMoves(self, inputString):
+        tempList = list(inputString)
+        rsltList = []
+        # l L L l
+        # 0 -> append nothing   LLLL, llll, LLll, Ll, etc
+        # 1 -> append capital   l, 
+        # 3 -> append lower
+        # -1 -> append lower
+        # -3 -> append upper
+        # 2/-2 -> append double letter
+
+        ptr = 0
+        
+        while ptr<len(tempList):
+            
+            move = tempList[ptr]
+            if ord(move)< 91:
+                count = 1
+            else:
+                count = -1
+            
+            while ptr<len(tempList)-1 and (tempList[ptr+1] == move or tempList[ptr+1] == revMap[move]):
+                ptr += 1
+                newMove = tempList[ptr]
+                if ord(newMove)< 91:
+                    count += 1
+                else:
+                    count -= 1
+                move = newMove
+            
+            case = count % 4
+
+            if case == 0:
+                pass
+            elif case == 1:
+                rsltList.append(move.upper())
+            elif case == 2:
+                rsltList.append(move + move)
+            elif case == 3:
+                rsltList.append(move.lower())
+
+            ptr += 1
+        
+        return rsltList
+
+    
+    '''
     def removeDuplicates(self, inputString):
         tempList = list(inputString)
         rsltList = []
@@ -771,9 +823,21 @@ class cube:
             rsltList.append(tempList[-1])
 
         self.solution = rsltList
-        return rsltList
+        return rsltList'''
+
+    
 
 
 
+'''newCube = cube()
+stringLen = 0
+numIters = 1000
 
+for i in range(numIters):
+    newCube.scramble(20,newCube.cubeArr)
+    newCube.solveCube()
+    stringLen += newCube.solutionLength
 
+print("Average = ", stringLen//numIters)
+
+'''
