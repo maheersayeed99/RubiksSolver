@@ -13,7 +13,31 @@ const int stepsPerRevolution = 200;   // Stepper
 #define ENC1 14                       // Encoder Pins
 #define ENC2 12
 
-int pos = 0;                          // Initialize Encoder Position
+
+// VARIABLES
+int pos = 0;            // Encoder Position
+int ceiling = 254;
+int deadband = 116;
+int setPoint = 0;
+
+float kp = 1;
+float kd = 100;
+float ki = 0;
+float u = 0;
+
+int prevError = 0;
+
+float error = 0;
+float derror = 0;
+float ierror = 0;
+
+
+long currTime;
+long prevTime;
+float timePassed;
+
+int testVal = 130;
+
 
 // HELPER FUNCTIONS
 
@@ -31,26 +55,84 @@ void setup() {
   
   myStepper.setSpeed(75);     // Initialize Stepper Speed
 
-  pinMode(ENC1, INPUT);
+  pinMode(ENC1, INPUT);       // Encoder pins are inputs
   pinMode(ENC2, INPUT);  
   
-  pinMode(DC1, OUTPUT);
+  pinMode(DC1, OUTPUT);       // DC Motor pins are outputs
   pinMode(DC2, OUTPUT);
   
-  attachInterrupt(digitalPinToInterrupt(ENC1), updateEncoder, RISING);
+  attachInterrupt(digitalPinToInterrupt(ENC1), updateEncoder, RISING);  // Encoder pin used as interrupt calls updateEncoder function 
+
+  pos = 0; // Initialize encoder position
+  prevTime = 0;
+  prevError = 0;
+  setPoint = 100;
+  
 
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  
   waitForInput();
-  Serial.println(pos);
-  powerMotor(110);
+
+  pidLoop();
+  
+  Serial.print(pos);
+  Serial.print("  ");
+  Serial.print(error);
+  Serial.print("  ");
+  Serial.print(derror);
+  Serial.print("  ");
+  Serial.print(ierror);
+  Serial.print("  ");
+  Serial.print(u);
+  Serial.print("  ");
+
+  
+  
+  powerMotor(-u);
+  Serial.println(testVal);
   delay(200);
-  //powerMotor(-1,25);
-  //delay(200);  
+    
 }
 
+
+// FUNCTION TO RUN PID
+
+void pidLoop(){
+  
+  currTime = micros();
+  timePassed = ((float)currTime-prevTime)/1.0e6;
+  prevTime = currTime;
+  
+  
+  error = pos - setPoint;
+  derror = (error-prevError)/timePassed;
+  ierror = ierror + error*timePassed;
+
+  prevError = error;
+
+  u = kp*error + kd*derror + ki*ierror;
+  if (u > 0)
+  {
+    u += deadband;
+  }
+  else if (u<=0)
+  {
+    u -= deadband;
+  }
+
+  if (u>ceiling)
+  {
+    u = ceiling;
+  }
+  else if (u<-ceiling)
+  {
+    u = -ceiling;
+  }
+}
+
+// FUNCTION TO TRACK ENCODER POSITION
 void updateEncoder(){
   int b = digitalRead(ENC2);
   if (b>0){
@@ -61,7 +143,7 @@ void updateEncoder(){
   }
 }
 
-
+// FUNCTION TO INPUT DC MOTOR POWER
 void powerMotor(int pwmVal, bool power){
 
   if (power == false){
@@ -71,7 +153,7 @@ void powerMotor(int pwmVal, bool power){
   }
 
   if (pwmVal < 0){
-    analogWrite(DC1, pwmVal);
+    analogWrite(DC1, -pwmVal);
     digitalWrite(DC2,LOW);
   }
 
@@ -89,6 +171,7 @@ void powerMotor(int pwmVal, bool power){
 
 
 
+// FUNCTION THAT TAKES SERIAL INPUT TO MAKE A MOVE
 
 void waitForInput(){
   
@@ -193,7 +276,7 @@ void waitForInput(){
 
       case '<':
         Serial.println("Right");
-        powerMotor(1,50);
+        testVal -= 1;
         break;
 
       case '-':
@@ -203,7 +286,7 @@ void waitForInput(){
 
       case '>':
         Serial.println("Right");
-        powerMotor(-1,20);
+        testVal += 1;
         break;
       
       default:
