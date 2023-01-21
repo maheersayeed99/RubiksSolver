@@ -24,7 +24,7 @@ class cube:
         self.solution = []                                              # Stores solution
         self.solutionString = ""
         self.solutionLength = 0
-        self.screenString = "D bb dd rr ll F l D r d RR D r b d B D l d L d f d F l d L D B D b d r d R D F D f R D r d b d B D l d L D B D b f d F D L D l R F D f d r L D B d b l dd B D b D B DD b LL BB L F l BB L f L RR d B f RR b F d RR"
+        self.screenString = " "
         
         self.solveGraph = dict()                                        # Graph used for backtracking
         self.initializeGraph()

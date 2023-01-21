@@ -267,7 +267,7 @@ class app:
         elif self.showing == True:
             currTime = time.time() - self.refTime
             if currTime > self.showTime:
-                self.changeMode()
+                #self.changeMode()
                 self.showing = False
 
         elif self.getTotalArea() > self.detectTolerance * self.regionArea:
