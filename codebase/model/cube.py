@@ -25,6 +25,7 @@ class cube:
         self.solutionString = ""
         self.solutionLength = 0
         self.screenString = " "
+        self.robotString = ""                                           # This will be the solution sent to robot with changing references
         
         self.solveGraph = dict()                                        # Graph used for backtracking
         self.initializeGraph()
@@ -794,6 +795,44 @@ class cube:
         
         return rsltList
 
+
+    def changeReference(self, tempList):
+        input = tempList
+
+        if not input:
+            return []
+        
+        rslt = [input.pop(0)]
+
+
+        if not input:
+            return rslt
+        
+
+        for move in input:
+            
+
+            if rslt[-1].upper() == "U" or rslt[-1].upper() == "UU":
+                rslt.append(self.changeFront(["XX"],[move])[0])
+            
+            elif rslt[-1].upper() == "L" or rslt[-1].upper() == "LL":
+                rslt.append(self.changeFront(["zX"],[move])[0])
+
+            elif rslt[-1].upper() == "F" or rslt[-1].upper() == "FF":
+                rslt.append(self.changeFront(["X"],[move])[0])
+
+            elif rslt[-1].upper() == "R" or rslt[-1].upper() == "RR":
+                rslt.append(self.changeFront(["ZX"],[move])[0])
+
+            elif rslt[-1].upper() == "B" or rslt[-1].upper() == "BB":
+                rslt.append(self.changeFront(["ZZX"],[move])[0])
+
+            elif rslt[-1].upper() == "D" or rslt[-1].upper() == "DD":
+                rslt.append(move)
+            
+        return rslt
+
+
     
     '''
     def removeDuplicates(self, inputString):
@@ -829,8 +868,16 @@ class cube:
 
 
 
-'''newCube = cube()
-stringLen = 0
+newCube = cube()
+
+newCube.scramble(20,newCube.cubeArr)
+newCube.solveCube()
+#print(newCube.solution)
+
+print(newCube.changeReference(["R","U","r","U","R","UU","r"]))
+
+#print(newCube.changeFront(["ZX"],["U"]))
+'''stringLen = 0
 numIters = 1000
 
 for i in range(numIters):
@@ -839,5 +886,4 @@ for i in range(numIters):
     stringLen += newCube.solutionLength
 
 print("Average = ", stringLen//numIters)
-
 '''
