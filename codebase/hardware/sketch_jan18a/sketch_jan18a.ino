@@ -17,12 +17,14 @@ const int stepsPerRevolution = 200;   // Stepper
 // VARIABLES
 int pos = 0;            // Encoder Position
 int ceiling = 254;
-int deadband = 116;
+int deadband = 45;
 int setPoint = 0;
+int activatePoint = 0;
+int disabledPoint = 1176/2;
 
-float kp = 1;
-float kd = 100;
-float ki = 0;
+float kp = .5;
+float kd = .1;
+float ki = .01;
 float u = 0;
 
 int prevError = 0;
@@ -53,7 +55,7 @@ void setup() {
 
   Serial.begin(115200);       // Serial port open
   
-  myStepper.setSpeed(75);     // Initialize Stepper Speed
+  myStepper.setSpeed(60);     // Initialize Stepper Speed
 
   pinMode(ENC1, INPUT);       // Encoder pins are inputs
   pinMode(ENC2, INPUT);  
@@ -63,10 +65,13 @@ void setup() {
   
   attachInterrupt(digitalPinToInterrupt(ENC1), updateEncoder, RISING);  // Encoder pin used as interrupt calls updateEncoder function 
 
+  myStepper.step(0);
+
   pos = 0; // Initialize encoder position
   prevTime = 0;
   prevError = 0;
-  setPoint = 100;
+  setPoint = -1176/2;
+  u = 0;
   
 
 }
@@ -74,63 +79,22 @@ void setup() {
 void loop() {
   
   waitForInput();
-
-  pidLoop();
-  
   Serial.print(pos);
+  Serial.print("   ");
+  Serial.print(activatePoint);
   Serial.print("  ");
-  Serial.print(error);
+  Serial.print(disabledPoint);
   Serial.print("  ");
-  Serial.print(derror);
-  Serial.print("  ");
-  Serial.print(ierror);
-  Serial.print("  ");
-  Serial.print(u);
-  Serial.print("  ");
-
+  Serial.print(setPoint);
+  Serial.println("  ");
   
-  
-  powerMotor(-u);
-  Serial.println(testVal);
   delay(200);
     
 }
 
 
-// FUNCTION TO RUN PID
 
-void pidLoop(){
-  
-  currTime = micros();
-  timePassed = ((float)currTime-prevTime)/1.0e6;
-  prevTime = currTime;
-  
-  
-  error = pos - setPoint;
-  derror = (error-prevError)/timePassed;
-  ierror = ierror + error*timePassed;
 
-  prevError = error;
-
-  u = kp*error + kd*derror + ki*ierror;
-  if (u > 0)
-  {
-    u += deadband;
-  }
-  else if (u<=0)
-  {
-    u -= deadband;
-  }
-
-  if (u>ceiling)
-  {
-    u = ceiling;
-  }
-  else if (u<-ceiling)
-  {
-    u = -ceiling;
-  }
-}
 
 // FUNCTION TO TRACK ENCODER POSITION
 void updateEncoder(){
@@ -246,29 +210,43 @@ void waitForInput(){
 
 
       case 'B':
-        right(1);
+        back(1);
         break;
 
       case 'b':
-        right(-1);
+        back(-1);
         break;
 
       case '5':
-        right(0);
+        back(0);
         break;
 
 
       case 'i':
-        trayCW();
+        trayActivateCW();
         break;
 
       case 'o':
-        trayCCW();
+        trayActivateCCW();
         break;
 
       case 'p':
-        tray180();
+        trayActivate180();
         break;
+
+
+      case 'I':
+        trayDisabledCW();
+        break;
+
+      case 'O':
+        trayDisabledCCW();
+        break;
+
+      case 'P':
+        trayDisabled180();
+        break;
+
 
       case ';':
         Serial.println("Working Input");
@@ -288,6 +266,21 @@ void waitForInput(){
         Serial.println("Right");
         testVal += 1;
         break;
+
+      case ',':
+        Serial.println("activate");
+        activateShroud();
+        break;
+
+      case '.':
+        Serial.println("disable");
+        disableShroud();
+        break;
+
+      case '/':
+        Serial.println("flip");
+        flipShroud();
+        break;
       
       default:
         // Code to execute if input is not 1, 2, or 3
@@ -298,155 +291,273 @@ void waitForInput(){
 }
 
 
+// ACTIVATED SHROUD MOVE FUNCTIONS
+
+void trayActivateCW(){
+  myStepper.step(52);
+  delay(50);
+  myStepper.step(-2);
+  delay(250);
+  return;
+}
+
+void trayActivateCCW(){
+  myStepper.step(-52);
+  delay(50);
+  myStepper.step(2);
+  delay(250);
+  return;
+}
+
+void trayActivate180(){
+  myStepper.step(102);
+  delay(50);
+  myStepper.step(-2);
+  delay(250);
+  return;
+}
 
 
-void trayCW(){
+
+// DISABLED SHROUD MOVE FUNCTIONS
+
+
+void trayDisabledCW(){
   myStepper.step(50);
   delay(250);
   return;
 }
 
-void trayCCW(){
+void trayDisabledCCW(){
   myStepper.step(-50);
   delay(250);
   return;
 }
 
-void tray180(){
+void trayDisabled180(){
   myStepper.step(100);
   delay(250);
   return;
 }
 
+
+
+
+
+// FUNCTION TO RUN PID
+
+void pidLoop(){
+  
+  currTime = micros();
+  timePassed = ((float)currTime-prevTime)/1.0e6;
+  prevTime = currTime;
+  
+  
+  error = pos - setPoint;
+  derror = (error-prevError)/timePassed;
+  ierror = ierror + error*timePassed;
+
+  prevError = error;
+  
+  /*
+  if (fabs(error)<5){
+    u = 0;
+    return;
+  }
+  */
+
+  u = kp*error + kd*derror + ki*ierror;
+  
+  if (u > 0)
+  {
+    u += deadband;
+  }
+  else if (u<=0)
+  {
+    u -= deadband;
+  }
+
+  if (u>ceiling)
+  {
+    u = ceiling;
+  }
+  else if (u<-ceiling)
+  {
+    u = -ceiling;
+  }
+}
+
+
+void moveShroud(int newSet){
+  setPoint = newSet;
+  error = pos - setPoint;
+  derror = 0;
+  ierror = 0;
+  while(fabs(error) > 10)
+  {
+    pidLoop();
+
+    Serial.print(activatePoint);
+    Serial.print("  ");
+    Serial.print(disabledPoint);
+    Serial.print("  ");
+    Serial.print(setPoint);
+    Serial.print("  ");
+
+    Serial.print(pos);
+    Serial.print("  ");
+    Serial.print(error);
+    Serial.print("  ");
+    Serial.print(derror);
+    Serial.print("  ");
+    Serial.print(ierror);
+    Serial.print("  ");
+    Serial.print(u);
+    Serial.println("  ");
+    
+    powerMotor(u);
+    delay(20);
+  }
+  powerMotor(0, false);
+}
+
+
+
 void flipShroud(){
+  moveShroud(activatePoint-60);
+  delay(10);
+  pos += 1181;
+  delay(10);
+  //activatePoint -= 1176;
+  //disabledPoint -= 1176;
+  moveShroud(disabledPoint+60);
+
+  delay(250);
   return;
 }
 
 void activateShroud(){
+  moveShroud(activatePoint-60);
+  delay(250);
   return;
 }
 
 void disableShroud(){
+  moveShroud(disabledPoint+60);
+  delay(250);
   return;
 }
 
 
-void right(int dir){
+
+
+
+// MOVES
+
+void left(int dir){
   disableShroud();
-  trayCW();
+  trayDisabledCW();
   flipShroud();
   activateShroud();
   
   if (dir == 1){
-    trayCCW();
+    trayActivateCCW();
   }
   else if (dir == -1){
-    trayCW();
+    trayActivateCW();
   }
   else{
-    tray180();
+    trayActivate180();
   }
 
-  disableShroud();
 }
 
 
 
-void left(int dir){
+void right(int dir){
   disableShroud();
-  trayCCW();
+  trayDisabledCCW();
   flipShroud();
   activateShroud();
   
   if (dir == 1){
-    trayCCW();
+    trayActivateCCW();
   }
   else if (dir == -1){
-    trayCW();
+    trayActivateCW();
   }
   else{
-    tray180();
+    trayActivate180();
   }
 
-  disableShroud();
 }
 
 
 void top(int dir){
-  disableShroud();
   flipShroud();
   flipShroud();
   activateShroud();
   
   if (dir == 1){
-    trayCCW();
+    trayActivateCCW();
   }
   else if (dir == -1){
-    trayCW();
+    trayActivateCW();
   }
   else{
-    tray180();
+    trayActivate180();
   }
-
-  disableShroud();
 }
 
 
 void bottom(int dir){
 
-  disableShroud();
   activateShroud();
   
   if (dir == 1){
-    trayCCW();
+    trayActivateCCW();
   }
   else if (dir == -1){
-    trayCW();
+    trayActivateCW();
   }
   else{
-    tray180();
+    trayActivate180();
   }
 
-  disableShroud();
 }
 
 
 void front(int dir){
 
-  disableShroud();
   flipShroud();
   activateShroud();
   
   if (dir == 1){
-    trayCCW();
+    trayActivateCCW();
   }
   else if (dir == -1){
-    trayCW();
+    trayActivateCW();
   }
   else{
-    tray180();
+    trayActivate180();
   }
-
-  disableShroud();
 }
 
 
 void back(int dir){
 
   disableShroud();
-  tray180();
+  trayDisabled180();
   flipShroud();
   activateShroud();
   
   if (dir == 1){
-    trayCCW();
+    trayActivateCCW();
   }
   else if (dir == -1){
-    trayCW();
+    trayActivateCW();
   }
   else{
-    tray180();
+    trayActivate180();
   }
-
-  disableShroud();
 }
