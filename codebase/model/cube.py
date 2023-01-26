@@ -798,41 +798,55 @@ class cube:
 
     def changeReference(self, tempList):
         input = tempList
-
+    
         if not input:
             return []
         
+        myMap = {}
+
+        for move in allMoves:
+            myMap[move] = move
+
         rslt = [input.pop(0)]
 
 
         if not input:
             return rslt
         
-
         for move in input:
-            
 
             if rslt[-1].upper() == "U" or rslt[-1].upper() == "UU":
-                rslt.append(self.changeFront(["XX"],[move])[0])
-            
+                self.updateReferences("yy",myMap)
+                
             elif rslt[-1].upper() == "L" or rslt[-1].upper() == "LL":
-                rslt.append(self.changeFront(["zX"],[move])[0])
+                self.updateReferences("ZX",myMap)
 
             elif rslt[-1].upper() == "F" or rslt[-1].upper() == "FF":
-                rslt.append(self.changeFront(["X"],[move])[0])
+                self.updateReferences("Y",myMap)
 
             elif rslt[-1].upper() == "R" or rslt[-1].upper() == "RR":
-                rslt.append(self.changeFront(["ZX"],[move])[0])
-
+                self.updateReferences("zx",myMap)
+                
             elif rslt[-1].upper() == "B" or rslt[-1].upper() == "BB":
-                rslt.append(self.changeFront(["ZZX"],[move])[0])
-
+                self.updateReferences("zzy",myMap)
+                
             elif rslt[-1].upper() == "D" or rslt[-1].upper() == "DD":
+                pass
+    
+            if move not in myMap:
                 rslt.append(move)
+            else:
+                rslt.append(myMap[move])
             
+            print(myMap)
+    
         return rslt
 
+    def updateReferences(self, refChange, inputMap):
 
+        for move in allMoves:
+            inputMap[move] = self.changeFront([refChange],[inputMap[move]])[0]
+        return
     
     '''
     def removeDuplicates(self, inputString):
@@ -875,8 +889,9 @@ newCube.solveCube()
 #print(newCube.solution)
 
 print(newCube.changeReference(["R","U","r","U","R","UU","r"]))
+#print(newCube.changeReference(["D","U"]))
 
-#print(newCube.changeFront(["ZX"],["U"]))
+#print(newCube.changeFront(["ZX"],["U","u","UU","l","L","LL"]))
 '''stringLen = 0
 numIters = 1000
 

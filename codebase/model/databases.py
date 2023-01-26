@@ -87,3 +87,12 @@ downCornerMap = {
     2: (2,0),
     3: (0,0)
 }
+
+
+
+allMoves = ["u","U","UU","uu",
+            "l","L","LL","ll",
+            "f","F","FF","ff",
+            "r","R","RR","rr",
+            "b","B","BB","bb",
+            "d","D","DD","dd"]
