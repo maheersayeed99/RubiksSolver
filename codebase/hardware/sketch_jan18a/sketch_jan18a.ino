@@ -21,10 +21,21 @@ int deadband = 45;
 int setPoint = 0;
 int activatePoint = 0;
 int disabledPoint = 1176/2;
-
+/*
 float kp = .5;
 float kd = .1;
 float ki = .01;
+*/
+int count = 0;
+
+
+float kp = 2;
+float kd = .4;
+float ki = .01;
+
+
+
+
 float u = 0;
 
 int prevError = 0;
@@ -65,8 +76,11 @@ void setup() {
   
   attachInterrupt(digitalPinToInterrupt(ENC1), updateEncoder, RISING);  // Encoder pin used as interrupt calls updateEncoder function 
 
-  myStepper.step(0);
-
+  
+  trayActivateCW();
+  delay(250);
+  trayActivateCCW();
+  
   pos = 0; // Initialize encoder position
   prevTime = 0;
   prevError = 0;
@@ -145,79 +159,79 @@ void waitForInput(){
 
     switch (input) {
       case 'R':
-        right(1);
-        break;
-
-      case 'r':
         right(-1);
         break;
 
-      case '4':
+      case 'r':
+        right(1);
+        break;
+
+      case '3':
         right(0);
         break;
 
 
       case 'L':
-        left(1);
-        break;
-
-      case 'l':
         left(-1);
         break;
 
-      case '2':
+      case 'l':
+        left(1);
+        break;
+
+      case '1':
         left(0);
         break;
 
 
       case 'T':
-        top(1);
-        break;
-
-      case 't':
         top(-1);
         break;
 
-      case '1':
+      case 't':
+        top(1);
+        break;
+
+      case '0':
         top(0);
         break;
 
 
       case 'D':
-        bottom(1);
-        break;
-
-      case 'd':
         bottom(-1);
         break;
 
-      case '6':
+      case 'd':
+        bottom(1);
+        break;
+
+      case '5':
         bottom(0);
         break;
 
 
       case 'F':
-        front(1);
-        break;
-
-      case 'f':
         front(-1);
         break;
 
-      case '3':
+      case 'f':
+        front(1);
+        break;
+
+      case '2':
         front(0);
         break;
 
 
       case 'B':
-        back(1);
-        break;
-
-      case 'b':
         back(-1);
         break;
 
-      case '5':
+      case 'b':
+        back(1);
+        break;
+
+      case '4':
         back(0);
         break;
 
@@ -294,17 +308,17 @@ void waitForInput(){
 // ACTIVATED SHROUD MOVE FUNCTIONS
 
 void trayActivateCW(){
-  myStepper.step(52);
+  myStepper.step(53);
   delay(50);
-  myStepper.step(-2);
+  myStepper.step(-3);
   delay(250);
   return;
 }
 
 void trayActivateCCW(){
-  myStepper.step(-52);
+  myStepper.step(-51);
   delay(50);
-  myStepper.step(2);
+  myStepper.step(1);
   delay(250);
   return;
 }
@@ -422,28 +436,37 @@ void moveShroud(int newSet){
 }
 
 
-
 void flipShroud(){
-  moveShroud(activatePoint-60);
+  
+  moveShroud(activatePoint);
   delay(10);
-  pos += 1181;
+  pos += 1190;
+  count ++;
+  if (count % 8 == 0){
+    pos -= 31;
+  }
+  
+  if (count % 40 == 0){
+    pos -= 20;
+  }
+  
   delay(10);
   //activatePoint -= 1176;
   //disabledPoint -= 1176;
-  moveShroud(disabledPoint+60);
+  moveShroud(disabledPoint);
 
   delay(250);
   return;
 }
 
 void activateShroud(){
-  moveShroud(activatePoint-60);
+  moveShroud(activatePoint-0);
   delay(250);
   return;
 }
 
 void disableShroud(){
-  moveShroud(disabledPoint+60);
+  moveShroud(disabledPoint+0);
   delay(250);
   return;
 }

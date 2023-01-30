@@ -25,6 +25,7 @@ class cube:
         self.solutionString = ""
         self.solutionLength = 0
         self.screenString = " "
+        self.referenceChangeSolution = []
         self.robotString = ""                                           # This will be the solution sent to robot with changing references
         
         self.solveGraph = dict()                                        # Graph used for backtracking
@@ -197,8 +198,15 @@ class cube:
 
         for move in range(numMoves):
             key, val = random.choice(list(rotMap.items()))
+            if move == 0:
+                pass
+            else:
+                while key.upper() == self.scrambleMoves[-1].upper():
+                    key, val = random.choice(list(rotMap.items()))
+            
             self.scrambleMoves.append(key)
             self.singleMove(key,cube)
+
 
     
     def manualScramble(self,cube,inputCube):
@@ -474,14 +482,20 @@ class cube:
         self.solutionString = self.solutionString.join(self.solution)
         self.solution = self.processMoves(self.solutionString)
         self.solutionLength = len(self.solution)
-
+        
+        
         print("Solution: ")
         print(*self.solution)
         self.screenString = " "
         self.screenString = self.screenString.join(self.solution)
         print("\n")
         print("Solution Length: ", len(self.solution))
-
+        
+        self.referenceChangeSolution = self.changeReference(self.solution)
+        self.generateRobotString(self.referenceChangeSolution)
+        print("\nReference Changed: ", self.referenceChangeSolution)
+        print("\nRobot Input: ",self.robotString)
+        
 
 
 
@@ -797,7 +811,7 @@ class cube:
 
 
     def changeReference(self, tempList):
-        input = tempList
+        input = tempList.copy()
     
         if not input:
             return []
@@ -838,8 +852,6 @@ class cube:
             else:
                 rslt.append(myMap[move])
             
-            print(myMap)
-    
         return rslt
 
     def updateReferences(self, refChange, inputMap):
@@ -848,6 +860,17 @@ class cube:
             inputMap[move] = self.changeFront([refChange],[inputMap[move]])[0]
         return
     
+
+    def generateRobotString(self, inputList):
+        rslt = []
+        for move in inputList:
+            rslt.append(robotMoves[move])
+        self.robotString = "".join(rslt)
+        return self.robotString
+
+
+
+
     '''
     def removeDuplicates(self, inputString):
         tempList = list(inputString)
@@ -881,24 +904,49 @@ class cube:
     
 
 
-
+'''
 newCube = cube()
 
-newCube.scramble(20,newCube.cubeArr)
-newCube.solveCube()
+#newCube.scramble(10,newCube.cubeArr)
+#newCube.solveCube()
+
+
+
 #print(newCube.solution)
 
-print(newCube.changeReference(["R","U","r","U","R","UU","r"]))
+#print(newCube.generateRobotString(newCube.changeReference(["R","U","r","U","R","UU","r"])))
 #print(newCube.changeReference(["D","U"]))
 
 #print(newCube.changeFront(["ZX"],["U","u","UU","l","L","LL"]))
-'''stringLen = 0
+
+stringLen = 0
 numIters = 1000
+
+minVal = float("inf")
+scrambleString = []
+solutionstring = ""
+solutionlist = []
+
 
 for i in range(numIters):
     newCube.scramble(20,newCube.cubeArr)
     newCube.solveCube()
-    stringLen += newCube.solutionLength
+    if len(newCube.solution) < minVal:
+        minVal = len(newCube.solution)
+        solutionlist = newCube.solution
+        scrambleString = newCube.scrambleMoves
+        
+        newCube.referenceChangeSolution = newCube.changeReference(newCube.solution)
+        newCube.generateRobotString(newCube.referenceChangeSolution)
+        solutionstring = newCube.robotString
+        
+
+    #stringLen += newCube.solutionLength
 
 print("Average = ", stringLen//numIters)
+print(minVal)
+print(scrambleString)
+print(solutionlist)
+print(solutionstring)
+
 '''
