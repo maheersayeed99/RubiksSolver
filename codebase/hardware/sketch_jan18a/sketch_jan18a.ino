@@ -93,6 +93,7 @@ void setup() {
 void loop() {
   
   waitForInput();
+  /*
   Serial.print(pos);
   Serial.print("   ");
   Serial.print(activatePoint);
@@ -101,7 +102,11 @@ void loop() {
   Serial.print("  ");
   Serial.print(setPoint);
   Serial.println("  ");
-  
+  */
+
+  Serial.print(pos);
+  Serial.print(",");
+  Serial.println(setPoint);
   delay(200);
     
 }
@@ -282,17 +287,17 @@ void waitForInput(){
         break;
 
       case ',':
-        Serial.println("activate");
+        //Serial.println("activate");
         activateShroud();
         break;
 
       case '.':
-        Serial.println("disable");
+        //Serial.println("disable");
         disableShroud();
         break;
 
       case '/':
-        Serial.println("flip");
+        //Serial.println("flip");
         flipShroud();
         break;
       
@@ -410,7 +415,7 @@ void moveShroud(int newSet){
   while(fabs(error) > 10)
   {
     pidLoop();
-
+    /*
     Serial.print(activatePoint);
     Serial.print("  ");
     Serial.print(disabledPoint);
@@ -428,6 +433,11 @@ void moveShroud(int newSet){
     Serial.print("  ");
     Serial.print(u);
     Serial.println("  ");
+    */
+
+    Serial.print(pos);
+    Serial.print(",");
+    Serial.println(setPoint);
     
     powerMotor(u);
     delay(20);
